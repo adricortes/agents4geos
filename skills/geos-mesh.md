@@ -18,8 +18,15 @@ CRITICAL: Use ONLY the `agents4geosx` MCP tools.
 ## IMPORTANT Conventions
 - dx/dy/dz are CELL SIZES in meters, not domain extents. Domain = nx * dx.
 - All GEOS examples use C3D8 (hexahedral) elements
-- Geometry boxes for BCs: use ±0.01m tolerance around face coordinates
-  - Left face (x=0): xMin={ -0.01, -0.01, -0.01 }, xMax={ 0.01, Ly+0.01, Lz+0.01 }
-  - Right face (x=Lx): xMin={ Lx-0.01, -0.01, -0.01 }, xMax={ Lx+0.01, Ly+0.01, Lz+0.01 }
-  - "all" box: xMin={ -0.01, -0.01, -0.01 }, xMax={ Lx+0.01, Ly+0.01, Lz+0.01 }
 - GEOS InternalMesh uses xCoords/yCoords/zCoords (domain boundaries) + nx/ny/nz (cell counts)
+
+## Geometry Boxes — CRITICAL for BCs
+
+Boxes that target `objectPath="ElementRegions/..."` (SourceFlux, most FieldSpecifications) must enclose at least one layer of CELL CENTERS, not just the face.
+
+For a domain Lx × Ly × Lz with cell sizes dx, dy, dz:
+- Left face source/BC: xMin={ -0.01, -0.01, -0.01 }, xMax={ **dx+0.01**, Ly+0.01, Lz+0.01 }
+- Right face source/BC: xMin={ **Lx-dx-0.01**, -0.01, -0.01 }, xMax={ Lx+0.01, Ly+0.01, Lz+0.01 }
+- "all" box (ICs): xMin={ -0.01, -0.01, -0.01 }, xMax={ Lx+0.01, Ly+0.01, Lz+0.01 }
+
+A thin slab box (±0.01m at a face) only captures nodes/edges/faces, NOT cells — GEOS will error with "targets empty set" for ElementRegions.

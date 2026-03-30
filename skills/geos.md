@@ -100,7 +100,24 @@ Component fractions MUST sum to ~1.0.
 
 - `generate_internal_mesh_xml`: dx/dy/dz are CELL SIZES, not domain extents. Domain = nx*dx.
 - permeabilityComponents is ALWAYS a { x, y, z } triplet, even for isotropic (repeat the value 3 times)
-- Geometry boxes for BCs use ±0.01m tolerance around the face coordinate
+## Geometry Box Rules for Boundary Conditions
+
+CRITICAL: Box geometry captures depend on the objectPath target:
+- `objectPath="ElementRegions/..."` → box must enclose CELL CENTERS (at least one cell deep)
+- `objectPath="nodeManager"` or `"faceManager"` → box can be face-thin (±0.01m)
+
+**For SourceFlux and FieldSpecifications targeting ElementRegions:**
+The box MUST enclose at least one layer of cells. A thin face-slab (±0.01m) will NOT work — it only captures nodes/edges/faces, not cells.
+
+Example for left face (x=0) with cell size dx=20m, domain Ly=500m, Lz=50m:
+- WRONG: xMin={ -0.01, -0.01, -0.01 }, xMax={ 0.01, 500.01, 50.01 }
+- RIGHT: xMin={ -0.01, -0.01, -0.01 }, xMax={ 20.01, 500.01, 50.01 }
+
+Example for right face (x=Lx=500m) with dx=20m:
+- WRONG: xMin={ 499.99, -0.01, -0.01 }, xMax={ 500.01, 500.01, 50.01 }
+- RIGHT: xMin={ 479.99, -0.01, -0.01 }, xMax={ 500.01, 500.01, 50.01 }
+
+For "all" box: xMin={ -0.01, -0.01, -0.01 }, xMax={ Lx+0.01, Ly+0.01, Lz+0.01 }
 
 ## General Rules
 - ALWAYS preview the document after template creation to see what exists
