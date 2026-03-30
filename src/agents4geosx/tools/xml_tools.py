@@ -175,7 +175,9 @@ def add_element(doc_id: str, section: str, element_type: str, name: str, attribu
         section_state = ElementState(schema_element=section_schema)
         doc.root.children.append(section_state)
 
-    attrs = {"name": name, **attributes}
+    attrs = {**attributes}
+    if name:
+        attrs["name"] = name
     new_state = ElementState(schema_element=el_schema, attributes=attrs)
     section_state.children.append(new_state)
     doc.is_modified = True
@@ -185,7 +187,8 @@ def add_element(doc_id: str, section: str, element_type: str, name: str, attribu
         if ra.required and ra.name not in attrs and ra.name != "name":
             warnings.append(f"Missing required attribute: {ra.name}")
 
-    return {"element_path": f"{section}/{element_type}[@name='{name}']", "warnings": warnings}
+    path_suffix = f"[@name='{name}']" if name else ""
+    return {"element_path": f"{section}/{element_type}{path_suffix}", "warnings": warnings}
 
 
 @mcp.tool
