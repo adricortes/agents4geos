@@ -30,7 +30,8 @@ def test_add_and_preview(schema):
         name="flow", attributes={"discretization": "fluidTPFA", "targetRegions": "{ Domain }"},
     )
     assert "element_path" in result
-    xml_str = preview_xml(doc_id=doc_id, section="Solvers")
+    result = preview_xml(doc_id=doc_id, section="Solvers")
+    xml_str = Path(result["path"]).read_text()
     assert "SinglePhaseFVM" in xml_str
     assert 'name="flow"' in xml_str
 
@@ -85,7 +86,8 @@ def test_save_and_reload(schema, tmp_output):
 
 def test_preview_full_document(schema):
     doc = create_document(template="single_phase_flow")
-    xml_str = preview_xml(doc_id=doc["doc_id"])
+    result = preview_xml(doc_id=doc["doc_id"])
+    xml_str = Path(result["path"]).read_text()
     assert "<Problem" in xml_str or "<Solvers" in xml_str
 
 

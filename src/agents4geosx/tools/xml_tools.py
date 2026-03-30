@@ -327,24 +327,30 @@ def save_xml(doc_id: str, output_path: str) -> dict:
 
 
 @mcp.tool
-def preview_xml(doc_id: str, section: str | None = None) -> str:
-    """Preview XML content of a document without saving.
+def preview_xml(doc_id: str, section: str | None = None, output_path: str | None = None) -> dict:
+    """Preview XML content of a document. Writes to a temp file for readable display.
 
     Args:
         doc_id: Document ID
         section: Optional section name to preview (e.g., 'Solvers')
+        output_path: Optional file path to write preview. If not provided, writes to /tmp/geos_preview.xml
     """
     doc = _store.get(doc_id)
     if doc is None:
-        return f"Error: Document '{doc_id}' not found"
+        return {"error": f"Document '{doc_id}' not found"}
     writer = XMLWriter()
     root_el = writer._build_element(doc.root)
     if section:
         section_el = root_el.find(section)
-        if section_el is not None:
-            return etree.tostring(section_el, pretty_print=True, encoding="unicode")
-        return f"Section '{section}' not found"
-    return '<?xml version="1.0" encoding="UTF-8"?>\n' + etree.tostring(root_el, pretty_print=True, encoding="unicode")
+        if section_el is None:
+            return {"error": f"Section '{section}' not found"}
+        xml_str = etree.tostring(section_el, pretty_print=True, encoding="unicode")
+    else:
+        xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + etree.tostring(root_el, pretty_print=True, encoding="unicode")
+
+    preview_path = Path(output_path) if output_path else Path("/tmp/geos_preview.xml")
+    preview_path.write_text(xml_str, encoding="utf-8")
+    return {"path": str(preview_path), "lines": xml_str.count("\n") + 1}
 
 
 @mcp.tool

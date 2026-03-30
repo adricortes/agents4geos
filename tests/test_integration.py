@@ -55,7 +55,9 @@ def test_single_phase_flow_e2e(schema, tmp_output):
     })
 
     # 8. Preview
-    xml_str = preview_xml(doc_id)
+    from pathlib import Path as P  # noqa: N811
+    result = preview_xml(doc_id)
+    xml_str = P(result["path"]).read_text()
     assert "SinglePhaseFVM" in xml_str
     assert "CompressibleSinglePhaseFluid" in xml_str
 
@@ -78,7 +80,9 @@ def test_co2_injection_from_template(schema, tmp_output):
     doc = create_document(template="co2_injection")
     doc_id = doc["doc_id"]
 
-    xml_str = preview_xml(doc_id)
+    from pathlib import Path as P2  # noqa: N811
+    result = preview_xml(doc_id)
+    xml_str = P2(result["path"]).read_text()
     assert len(xml_str) > 100
 
     # Sanity check

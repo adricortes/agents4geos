@@ -19,6 +19,10 @@ CRITICAL: Use ONLY the `agents4geosx` MCP tools. NEVER edit XML files directly w
 6. `preview_xml(doc_id)` — show user what changed
 7. `save_xml(doc_id, path)` — write and auto-validate with xmllint
 
+## Viewing XML
+`preview_xml` writes to a file and returns `{"path": "/tmp/geos_preview.xml", "lines": N}`.
+Use the `Read` tool on the returned path to display the XML with proper formatting.
+
 ## Rules
 - ALWAYS preview before AND after changes
 - Element paths use format: `Section/ElementType[@name='value']`
