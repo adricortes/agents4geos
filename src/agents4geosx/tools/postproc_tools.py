@@ -5,7 +5,6 @@ from __future__ import annotations
 import numpy as np
 
 from agents4geosx.server import mcp
-from agents4geosx.tools.xml_tools import _store
 from agents4geosx.knowledge.sanity_rules import run_sanity_checks
 
 
@@ -135,6 +134,7 @@ def compute_well_performance(
 @mcp.tool
 def sanity_check(doc_id: str) -> dict:
     """Run physics sanity checks on a document's parameters."""
+    from agents4geosx.tools.xml_tools import _store
     doc = _store.get(doc_id)
     if doc is None:
         return {"error": f"Document '{doc_id}' not found"}
