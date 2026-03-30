@@ -40,6 +40,18 @@ SANITY_RULES: list[dict] = [
     },
 ]
 
+# Coupled solid types that GEOS recognizes in materialList.
+# Every CellElementRegion materialList MUST include one of these.
+COUPLED_SOLID_TYPES = {
+    "CompressibleSolidConstantPermeability",
+    "CompressibleSolidCarmanKozenyPermeability",
+    "CompressibleSolidPressurePermeability",
+    "CompressibleSolidSlipDependentPermeability",
+    "PorousElasticIsotropic",
+    "PorousElasticIsotropicCarmanKozenyPermeability",
+    "ThermoPoroElasticIsotropic",
+}
+
 
 def run_sanity_checks(attributes: dict[str, str]) -> list[dict]:
     """Run physics sanity checks on attribute values.
@@ -63,4 +75,60 @@ def run_sanity_checks(attributes: dict[str, str]) -> list[dict]:
                 })
             except (ValueError, TypeError):
                 pass  # Non-numeric or expression — skip
+    return results
+
+
+def check_document_structure(root_element) -> list[dict]:
+    """Run structural checks on the full document.
+
+    Checks:
+    - Every CellElementRegion materialList includes a coupled solid
+    - Composition fractions sum to ~1.0
+    """
+    results = []
+
+    # Check coupled solid in materialList
+    for section in root_element.children:
+        if section.schema_element.name == "ElementRegions":
+            for region in section.children:
+                if region.schema_element.name == "CellElementRegion":
+                    mat_list = region.attributes.get("materialList", "")
+                    region_name = region.attributes.get("name", "unknown")
+                    # Parse material names from "{ name1, name2 }"
+                    if mat_list.startswith("{") and mat_list.endswith("}"):
+                        names = [n.strip() for n in mat_list[1:-1].split(",")]
+                    else:
+                        names = [mat_list.strip()]
+                    results.append({
+                        "name": "materialList_has_names",
+                        "attribute": f"ElementRegions/{region_name}/materialList",
+                        "status": "pass" if len(names) >= 2 else "fail",
+                        "message": "OK" if len(names) >= 2 else
+                                   f"materialList should have at least fluid + coupled solid, got: {names}",
+                    })
+
+    # Check composition initialization sums
+    comp_fractions: dict[str, float] = {}  # setName → sum of component fractions
+    for section in root_element.children:
+        if section.schema_element.name == "FieldSpecifications":
+            for spec in section.children:
+                field = spec.attributes.get("fieldName", "")
+                if field == "globalCompFraction" and spec.attributes.get("initialCondition") == "1":
+                    set_names = spec.attributes.get("setNames", "all")
+                    try:
+                        scale = float(spec.attributes.get("scale", "0"))
+                        comp_fractions[set_names] = comp_fractions.get(set_names, 0.0) + scale
+                    except (ValueError, TypeError):
+                        pass
+
+    for set_name, total in comp_fractions.items():
+        passed = 0.99 <= total <= 1.01
+        results.append({
+            "name": "composition_sum",
+            "attribute": f"globalCompFraction on {set_name}",
+            "value": total,
+            "status": "pass" if passed else "fail",
+            "message": "OK" if passed else f"Component fractions sum to {total:.4f}, should be ~1.0",
+        })
+
     return results

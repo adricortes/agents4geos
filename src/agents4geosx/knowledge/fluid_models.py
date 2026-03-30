@@ -93,6 +93,88 @@ FLUID_MODEL_MAP: list[dict] = [
                  "Adjust component properties for your specific fluid system.",
     },
     {
+        "keywords": ["dead oil", "deadoil", "black oil", "blackoil"],
+        "solver": "CompositionalMultiphaseFVM",
+        "material_list": ["fluid", "rock", "relperm"],
+        "constitutive_elements": [
+            {"type": "DeadOilFluid", "name": "fluid", "attrs": {
+                "phaseNames": "{ oil, gas, water }",
+                "surfaceDensities": "{ 800.0, 0.9907, 1022.0 }",
+                "componentMolarWeight": "{ 114e-3, 16e-3, 18e-3 }",
+                "tableFiles": "{ pvdo.txt, pvdg.txt, pvtw.txt }",
+            }},
+            {"type": "CompressibleSolidConstantPermeability", "name": "rock", "attrs": {
+                "solidModelName": "nullSolid",
+                "porosityModelName": "rockPorosity",
+                "permeabilityModelName": "rockPerm",
+            }},
+            {"type": "NullModel", "name": "nullSolid", "attrs": {}},
+            {"type": "PressurePorosity", "name": "rockPorosity", "attrs": {
+                "defaultReferencePorosity": "0.2",
+                "referencePressure": "0.0",
+                "compressibility": "1.0e-9",
+            }},
+            {"type": "ConstantPermeability", "name": "rockPerm", "attrs": {
+                "permeabilityComponents": "{ 1.0e-13, 1.0e-13, 1.0e-13 }",
+            }},
+            {"type": "BrooksCoreyRelativePermeability", "name": "relperm", "attrs": {
+                "phaseNames": "{ oil, gas, water }",
+                "phaseMinVolumeFraction": "{ 0.1, 0.15, 0.15 }",
+                "phaseRelPermExponent": "{ 2.0, 2.0, 2.0 }",
+                "phaseRelPermMaxValue": "{ 0.8, 0.9, 0.9 }",
+            }},
+        ],
+        "notes": "Dead/black oil model (most common multiphase). Requires external PVT table "
+                 "files (pvdo.txt, pvdg.txt, pvtw.txt). Uses 3-phase Brooks-Corey relperm.",
+    },
+    {
+        "keywords": ["thermal", "heat", "temperature dependent", "geothermal"],
+        "solver": "SinglePhaseFVM",
+        "solver_attrs": {"isThermal": "1"},
+        "material_list": ["fluid", "rock", "thermalCond"],
+        "constitutive_elements": [
+            {"type": "ThermalCompressibleSinglePhaseFluid", "name": "fluid", "attrs": {
+                "defaultDensity": "1000",
+                "defaultViscosity": "1e-4",
+                "referencePressure": "0.0",
+                "referenceTemperature": "273.0",
+                "compressibility": "5e-10",
+                "thermalExpansionCoeff": "3e-4",
+                "viscosibility": "0.0",
+                "specificHeatCapacity": "4.0e3",
+                "referenceInternalEnergy": "1.1e6",
+            }},
+            {"type": "CompressibleSolidConstantPermeability", "name": "rock", "attrs": {
+                "solidModelName": "nullSolid",
+                "porosityModelName": "rockPorosity",
+                "permeabilityModelName": "rockPerm",
+                "solidInternalEnergyModelName": "rockInternalEnergy",
+            }},
+            {"type": "NullModel", "name": "nullSolid", "attrs": {}},
+            {"type": "PressurePorosity", "name": "rockPorosity", "attrs": {
+                "defaultReferencePorosity": "0.2",
+                "referencePressure": "0.0",
+                "compressibility": "1.0e-9",
+            }},
+            {"type": "ConstantPermeability", "name": "rockPerm", "attrs": {
+                "permeabilityComponents": "{ 1.0e-13, 1.0e-13, 1.0e-13 }",
+            }},
+            {"type": "SolidInternalEnergy", "name": "rockInternalEnergy", "attrs": {
+                "referenceVolumetricHeatCapacity": "1.95e6",
+                "referenceTemperature": "273.0",
+                "referenceInternalEnergy": "5.33e8",
+            }},
+            {"type": "SinglePhaseThermalConductivity", "name": "thermalCond", "attrs": {
+                "defaultThermalConductivityComponents": "{ 1.66, 1.66, 1.66 }",
+                "thermalConductivityGradientComponents": "{ 0, 0, 0 }",
+                "referenceTemperature": "0",
+            }},
+        ],
+        "notes": "Thermal single-phase flow. Requires isThermal='1' on solver, "
+                 "ThermalCompressibleSinglePhaseFluid, SolidInternalEnergy, and "
+                 "SinglePhaseThermalConductivity. Coupled solid gets solidInternalEnergyModelName.",
+    },
+    {
         "keywords": ["immiscible", "two-phase", "oil water", "water oil"],
         "solver": "ImmiscibleMultiphaseFlow",
         "material_list": ["fluid", "rock", "relperm"],

@@ -15,6 +15,7 @@ ATTRIBUTE_REFERENCES: dict[str, dict] = {
     "solidModelName": {"target_section": "Constitutive", "description": "References a solid model"},
     "porosityModelName": {"target_section": "Constitutive", "description": "References a porosity model"},
     "permeabilityModelName": {"target_section": "Constitutive", "description": "References a permeability model"},
+    "solidInternalEnergyModelName": {"target_section": "Constitutive", "description": "References a SolidInternalEnergy model (thermal coupling)"},
 }
 
 

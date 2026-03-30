@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from agents4geosx.server import mcp
-from agents4geosx.knowledge.sanity_rules import run_sanity_checks
+from agents4geosx.knowledge.sanity_rules import run_sanity_checks, check_document_structure
 
 
 @mcp.tool
@@ -142,6 +142,8 @@ def sanity_check(doc_id: str) -> dict:
     all_attrs: dict[str, str] = {}
     _collect_all_attrs(doc.root, all_attrs)
     checks = run_sanity_checks(all_attrs)
+    structural = check_document_structure(doc.root)
+    checks.extend(structural)
     return {
         "checks": checks,
         "total": len(checks),
