@@ -51,19 +51,60 @@ def screenshot_field(
     file_path: str,
     field_name: str,
     camera_position: str = "iso",
-    colormap: str = "viridis",
+    colormap: str = "coolwarm",
     clim: list[float] | None = None,
     output_path: str = "field_screenshot.png",
+    title: str | None = None,
 ) -> str:
-    """Generate a headless screenshot of a scalar field on a mesh."""
+    """Generate a publication-quality screenshot of a scalar field on a mesh.
+
+    Includes: titled colorbar (vertical, right side), axis widget, figure title,
+    proper font sizes, white background. Suitable for papers and presentations.
+
+    Args:
+        file_path: Path to VTK file
+        field_name: Scalar field to visualize
+        camera_position: 'xy', 'xz', 'yz', or 'iso'
+        colormap: Matplotlib colormap (default: coolwarm for diverging data)
+        clim: Color limits [min, max], or None for auto
+        output_path: Path to save PNG
+        title: Optional figure title (defaults to field_name)
+    """
     import pyvista as pv
 
     pv.OFF_SCREEN = True
+    pv.global_theme.font.size = 16
+    pv.global_theme.font.label_size = 14
+    pv.global_theme.font.title_size = 20
+    pv.global_theme.font.family = "arial"
+
     mesh = pv.read(file_path)
     plotter = pv.Plotter(off_screen=True, window_size=(1920, 1080))
-    plotter.add_mesh(mesh, scalars=field_name, cmap=colormap, clim=clim,
-                     show_edges=False, scalar_bar_args={"title": field_name})
+
+    sbar_args = {
+        "title": field_name,
+        "vertical": True,
+        "position_x": 0.85,
+        "position_y": 0.15,
+        "width": 0.05,
+        "height": 0.7,
+        "title_font_size": 18,
+        "label_font_size": 14,
+        "n_labels": 5,
+        "fmt": "%.4g",
+        "shadow": True,
+    }
+
+    plotter.add_mesh(
+        mesh, scalars=field_name, cmap=colormap, clim=clim,
+        show_edges=False, scalar_bar_args=sbar_args,
+    )
+    plotter.show_axes()
+    plotter.add_axes(line_width=2, labels_off=False)
+    fig_title = title or field_name
+    plotter.add_text(fig_title, position="upper_left", font_size=16, shadow=True)
     plotter.camera_position = camera_position
+    plotter.set_background("white")
     plotter.screenshot(output_path)
     plotter.close()
     return output_path

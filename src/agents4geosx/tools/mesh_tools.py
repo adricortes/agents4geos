@@ -97,15 +97,52 @@ def screenshot_mesh(
     scalars: str | None = None,
     camera_position: str = "iso",
     output_path: str = "mesh_screenshot.png",
+    title: str | None = None,
 ) -> str:
-    """Generate a headless screenshot of a mesh (no display required)."""
+    """Generate a publication-quality headless screenshot of a mesh.
+
+    Args:
+        file_path: Path to mesh file
+        scalars: Optional scalar field to color by
+        camera_position: 'xy', 'xz', 'yz', or 'iso'
+        output_path: Path to save PNG
+        title: Optional title for the figure
+    """
     import pyvista as pv
 
     pv.OFF_SCREEN = True
+    pv.global_theme.font.size = 16
+    pv.global_theme.font.label_size = 14
+    pv.global_theme.font.title_size = 20
+    pv.global_theme.font.family = "arial"
+
     mesh = pv.read(file_path)
     plotter = pv.Plotter(off_screen=True, window_size=(1920, 1080))
-    plotter.add_mesh(mesh, scalars=scalars, show_edges=True, edge_color="gray", opacity=0.8)
+
+    sbar_args = {
+        "title": scalars or "",
+        "vertical": True,
+        "position_x": 0.85,
+        "position_y": 0.15,
+        "width": 0.05,
+        "height": 0.7,
+        "title_font_size": 18,
+        "label_font_size": 14,
+        "n_labels": 5,
+        "fmt": "%.2e",
+        "shadow": True,
+    } if scalars else {}
+
+    plotter.add_mesh(
+        mesh, scalars=scalars, show_edges=True, edge_color="gray",
+        opacity=0.9, scalar_bar_args=sbar_args if scalars else None,
+    )
+    plotter.show_axes()
+    plotter.add_axes(line_width=2, labels_off=False)
+    if title:
+        plotter.add_text(title, position="upper_left", font_size=16, shadow=True)
     plotter.camera_position = camera_position
+    plotter.set_background("white")
     plotter.screenshot(output_path)
     plotter.close()
     return output_path

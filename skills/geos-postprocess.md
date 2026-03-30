@@ -20,6 +20,20 @@ CRITICAL: Use ONLY the `agents4geosx` MCP tools.
 3. `screenshot_field` for visualization (headless, generates PNG)
 4. For time series: collect multiple VTK files → `compare_timesteps`
 
+## Publication-Quality Screenshots
+`screenshot_field` produces publication-ready figures with:
+- Vertical colorbar on the right with proper labels
+- Axis widget showing X/Y/Z orientation
+- Figure title in upper-left corner
+- White background, proper font sizes
+
+ALWAYS provide a descriptive `title` parameter, e.g.:
+- `title="Pressure Field at t = 1 year [Pa]"`
+- `title="ΔPressure (Final - Initial) [Pa]"`
+- `title="Water Density [kg/m³]"`
+
+Default colormap is `coolwarm` (blue-white-red, good for diverging data). Use `viridis` for sequential data (saturation, porosity).
+
 ## All units are SI
 - Pressure: Pa
 - Rate: m³/s

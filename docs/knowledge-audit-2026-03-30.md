@@ -70,6 +70,11 @@ Based on 4 parallel agent audits covering 200+ input files.
 - [ ] JFunctionCapillaryPressure (1 file, with surface tension)
 - [x] No capillary pressure (most common for simple cases — optional)
 
+## Backlog — New Tools
+
+- [ ] `compute_darcy_velocity(vtk_path, permeability_m2, viscosity_Pa_s)` — compute v = -(k/μ)∇p from pressure field, add as array, save, screenshot
+- [ ] `compute_pressure_gradient(vtk_path)` — numerical gradient of pressure field on structured grid
+
 ## Mesh Patterns
 
 - [x] InternalMesh with C3D8 (most common)
