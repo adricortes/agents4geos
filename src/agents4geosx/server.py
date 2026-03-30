@@ -11,6 +11,8 @@ def health_check() -> dict:
 import agents4geosx.tools.schema_tools  # noqa: F401
 import agents4geosx.tools.fluid_tools   # noqa: F401
 import agents4geosx.tools.mesh_tools    # noqa: F401
+import agents4geosx.tools.xml_tools     # noqa: F401
+import agents4geosx.tools.postproc_tools # noqa: F401
 
 if __name__ == "__main__":
     mcp.run()
