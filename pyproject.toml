@@ -1,0 +1,38 @@
+[project]
+name = "agents4geosx"
+version = "0.1.0"
+description = "Natural language interface for GEOS XML input creation via MCP tools"
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp>=2.0",
+    "lxml>=5.0",
+    "pyvista>=0.43",
+    "numpy>=1.24",
+    "geos-tui",
+]
+
+[project.optional-dependencies]
+fluids = [
+    "pyrestoolbox>=3.1",
+    "scipy>=1.10",
+    "pandas>=2.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agents4geosx"]
+
+[tool.uv.sources]
+pyrestoolbox = { path = "../pyResToolbox", editable = true }
+pyvista = { path = "../pyvista", editable = true }
+geos-tui = { path = "../../geos-tui", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
