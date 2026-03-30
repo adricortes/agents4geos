@@ -119,6 +119,9 @@ Example for right face (x=Lx=500m) with dx=20m:
 
 For "all" box: xMin={ -0.01, -0.01, -0.01 }, xMax={ Lx+0.01, Ly+0.01, Lz+0.01 }
 
+## File Path Rules
+The MCP server runs in a different directory than your workspace. ALWAYS use **absolute file paths** for ALL MCP tool calls that take a file path (save_xml, load_xml, validate_xml, screenshot_field, read_vtk_output, etc.). Resolve relative paths first with `Bash(realpath <path>)`.
+
 ## General Rules
 - ALWAYS preview the document after template creation to see what exists
 - ALWAYS use `update_element` for template elements, `add_element` only for NEW elements

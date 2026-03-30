@@ -14,6 +14,9 @@ CRITICAL: Use ONLY the `agents4geosx` MCP tools.
 - `compute_well_performance(Pr, Pwf, T, k, h)` — quick rate sanity check (SI units)
 - `sanity_check(doc_id)` — physics heuristics on the input file
 
+## IMPORTANT: Use Absolute Paths
+The MCP server runs in a different directory than your workspace. ALWAYS use absolute file paths for all postprocessing tools. Use `Bash(pwd)` or `Bash(realpath run/file.vtu)` to resolve relative paths first.
+
 ## Workflow
 1. `read_vtk_output` first to see what fields are available
 2. `extract_field` for quick statistics
