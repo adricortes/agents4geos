@@ -77,6 +77,15 @@ def _count_unknown(el: ElementState) -> int:
     return count + sum(_count_unknown(c) for c in el.children)
 
 
+def _collect_names_recursive(el: ElementState, names: set[str]) -> None:
+    """Recursively collect all named elements within a section."""
+    for child in el.children:
+        name = child.attributes.get("name")
+        if name:
+            names.add(name)
+        _collect_names_recursive(child, names)
+
+
 def _collect_attrs(el: ElementState, attrs: dict) -> None:
     attrs.update(el.attributes)
     for child in el.children:
@@ -378,10 +387,7 @@ def validate_cross_references(doc_id: str) -> dict:
     for section in doc.root.children:
         section_name = section.schema_element.name
         named[section_name] = set()
-        for child in section.children:
-            name = child.attributes.get("name")
-            if name:
-                named[section_name].add(name)
+        _collect_names_recursive(section, named[section_name])
 
     errors: list[dict] = []
     _check_refs(doc.root, "", named, errors)
