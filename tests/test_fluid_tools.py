@@ -47,9 +47,18 @@ def test_generate_cap_pressure():
 def test_recommend_fluid_model_co2():
     result = recommend_fluid_model(description="CO2 injection into saline aquifer")
     assert "CompositionalMultiphaseFVM" in result["solver"]
-    assert any("CO2" in m for m in result["constitutive_models"])
+    assert "material_list" in result
+    elem_types = [e["type"] for e in result["constitutive_elements"]]
+    assert "CO2BrinePhillipsFluid" in elem_types
+    assert "CompressibleSolidConstantPermeability" in elem_types
+    assert "NullModel" in elem_types
 
 
 def test_recommend_fluid_model_single_phase():
     result = recommend_fluid_model(description="single phase water flow")
     assert "SinglePhaseFVM" in result["solver"]
+    assert "water" in result["material_list"]
+    assert "rock" in result["material_list"]
+    elem_types = [e["type"] for e in result["constitutive_elements"]]
+    assert "CompressibleSinglePhaseFluid" in elem_types
+    assert "CompressibleSolidConstantPermeability" in elem_types
