@@ -21,7 +21,7 @@ CRITICAL: Use ONLY the `agents4geosx` MCP tools. NEVER edit XML files directly w
 
 ## Viewing XML
 `preview_xml` writes to a file and returns `{"path": "/tmp/geos_preview.xml", "lines": N}`.
-Use the `Read` tool on the returned path to display the XML with proper formatting.
+`Read` the returned path to load the XML, then output it to the user in a ```xml code block.
 
 ## Rules
 - ALWAYS preview before AND after changes

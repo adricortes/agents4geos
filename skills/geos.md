@@ -35,7 +35,7 @@ When using `create_document(template=...)`, the template ALREADY contains elemen
 **For elements NOT in the template:**
 → Use `add_element` to ADD new ones (e.g., Geometry boxes, FieldSpecifications, extra constitutive models)
 
-**How to know what's in the template:** After `create_document`, ALWAYS call `preview_xml(doc_id)` — it writes to a file. Then use the `Read` tool on the returned path to display the XML with proper formatting.
+**How to know what's in the template:** After `create_document`, ALWAYS call `preview_xml(doc_id)` — it writes to a file. Then `Read` the returned path to load the XML into context, and output it to the user inside a ```xml code block so they can see it formatted.
 
 **Example — correct workflow with template:**
 ```
