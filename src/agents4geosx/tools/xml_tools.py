@@ -240,7 +240,8 @@ def add_element(doc_id: str, section: str, element_type: str, name: str, attribu
         doc_id: Document ID from create_document or load_xml
         section: Section name (e.g., 'Solvers', 'Constitutive')
         element_type: Element type (e.g., 'SinglePhaseFVM')
-        name: Value for the 'name' attribute
+        name: Value for the 'name' attribute (pass empty string for elements
+              that don't accept a name, e.g. FiniteVolume)
         attributes: Dict of attribute name->value pairs
     """
     doc = _store.get(doc_id)
@@ -259,19 +260,26 @@ def add_element(doc_id: str, section: str, element_type: str, name: str, attribu
         section_state = ElementState(schema_element=section_schema)
         doc.root.children.append(section_state)
 
+    has_name_attr = any(a.name == "name" for a in el_schema.attributes)
     attrs = {**attributes}
+    warnings = []
     if name:
-        attrs["name"] = name
+        if has_name_attr:
+            attrs["name"] = name
+        else:
+            warnings.append(
+                f"{element_type} does not accept a 'name' attribute in the schema "
+                f"— the provided name '{name}' was ignored"
+            )
     new_state = ElementState(schema_element=el_schema, attributes=attrs)
     section_state.children.append(new_state)
     doc.is_modified = True
 
-    warnings = []
     for ra in el_schema.attributes:
         if ra.required and ra.name not in attrs and ra.name != "name":
             warnings.append(f"Missing required attribute: {ra.name}")
 
-    path_suffix = f"[@name='{name}']" if name else ""
+    path_suffix = f"[@name='{name}']" if name and has_name_attr else ""
     return {"element_path": f"{section}/{element_type}{path_suffix}", "warnings": warnings}
 
 
@@ -348,7 +356,7 @@ def add_child(doc_id: str, parent_path: str, element_type: str, name: str, attri
         doc_id: Document ID
         parent_path: Path to parent (e.g., "Solvers/SinglePhaseFVM[@name='flow']")
         element_type: Child element type (e.g., 'NonlinearSolverParameters')
-        name: Name attribute (empty string if not applicable)
+        name: Name attribute (pass empty string for elements that don't accept a name)
         attributes: Attribute dict
     """
     doc = _store.get(doc_id)
@@ -362,12 +370,22 @@ def add_child(doc_id: str, parent_path: str, element_type: str, name: str, attri
     if child_schema is None:
         return {"error": f"Element type '{element_type}' not found"}
 
-    attrs = {"name": name, **attributes} if name else {**attributes}
+    has_name_attr = any(a.name == "name" for a in child_schema.attributes)
+    warnings = []
+    attrs = {**attributes}
+    if name:
+        if has_name_attr:
+            attrs["name"] = name
+        else:
+            warnings.append(
+                f"{element_type} does not accept a 'name' attribute in the schema "
+                f"— the provided name '{name}' was ignored"
+            )
     child_state = ElementState(schema_element=child_schema, attributes=attrs)
     parent.children.append(child_state)
     doc.is_modified = True
-    path = f"{parent_path}/{element_type}" + (f"[@name='{name}']" if name else "")
-    return {"element_path": path, "warnings": []}
+    path = f"{parent_path}/{element_type}" + (f"[@name='{name}']" if name and has_name_attr else "")
+    return {"element_path": path, "warnings": warnings}
 
 
 @mcp.tool
