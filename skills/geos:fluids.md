@@ -1,5 +1,5 @@
 ---
-name: geos-fluids
+name: geos:fluids
 description: Compute fluid PVT properties for GEOS simulations (all SI units).
 ---
 

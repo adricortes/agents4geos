@@ -1,5 +1,5 @@
 ---
-name: geos-schema
+name: geos:schema
 description: Query the GEOS XSD schema — available elements, attributes, types, cross-references.
 ---
 

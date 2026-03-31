@@ -1,5 +1,5 @@
 ---
-name: geos-relperm
+name: geos:relperm
 description: Generate relative permeability and capillary pressure curves.
 ---
 

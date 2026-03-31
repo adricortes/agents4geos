@@ -1,5 +1,5 @@
 ---
-name: geos-postprocess
+name: geos:postprocess
 description: Analyze GEOS simulation output — VTK fields, time evolution, material balance.
 ---
 

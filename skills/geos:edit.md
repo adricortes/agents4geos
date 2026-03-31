@@ -1,5 +1,5 @@
 ---
-name: geos-edit
+name: geos:edit
 description: Edit an existing GEOS XML file — load, modify elements, validate, and save.
 ---
 

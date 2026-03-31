@@ -1,5 +1,5 @@
 ---
-name: geos-mesh
+name: geos:mesh
 description: Create, visualize, or analyze meshes for GEOS simulations.
 ---
 

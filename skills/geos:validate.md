@@ -1,5 +1,5 @@
 ---
-name: geos-validate
+name: geos:validate
 description: Validate a GEOS XML file — schema validation, cross-reference checks, and physics sanity.
 ---
 

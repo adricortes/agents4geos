@@ -1,5 +1,5 @@
 ---
-name: geos-inspect
+name: geos:inspect
 description: Describe what a GEOS XML file contains — solvers, mesh, materials, BCs.
 ---
 
