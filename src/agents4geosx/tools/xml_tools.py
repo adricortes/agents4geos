@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import os
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 
 from lxml import etree
@@ -523,3 +526,60 @@ def _diff_elements(a, b, path: str, diffs: list) -> None:
     b_children = {(c.tag, c.get("name", "")): c for c in b}
     for key in set(a_children) | set(b_children):
         _diff_elements(a_children.get(key), b_children.get(key), current, diffs)
+
+
+@mcp.tool
+def log_runtime_error(
+    doc_id: str,
+    geos_error: str,
+    error_summary: str,
+    fix_applied: str,
+) -> dict:
+    """Log a GEOS runtime error with full context for future learning.
+
+    Call this AFTER diagnosing and fixing (or failing to fix) a GEOS runtime error.
+    Extracts solver and constitutive types from the document automatically.
+
+    Args:
+        doc_id: Document ID of the XML that caused the error.
+        geos_error: Raw GEOS error text (copy the relevant lines).
+        error_summary: Your one-line diagnosis of what went wrong.
+        fix_applied: What resolved the issue, or "UNRESOLVED" if unfixed after 3 attempts.
+    """
+    doc = _store.get(doc_id)
+    if doc is None:
+        return {"error": f"Document '{doc_id}' not found"}
+
+    # Extract context from document
+    xml_file = doc.source_path.name if doc.source_path else "unknown"
+    solvers = []
+    constitutive_types = []
+    for section in doc.root.children:
+        sec_name = section.schema_element.name
+        if sec_name == "Solvers":
+            for child in section.children:
+                solvers.append(child.schema_element.name)
+        elif sec_name == "Constitutive":
+            for child in section.children:
+                constitutive_types.append(child.schema_element.name)
+
+    entry = {
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "xml_file": xml_file,
+        "solvers": solvers,
+        "constitutive_types": constitutive_types,
+        "geos_error": geos_error,
+        "error_summary": error_summary,
+        "fix_applied": fix_applied,
+    }
+
+    # Append to JSONL log
+    log_path = os.environ.get(
+        "AGENTS4GEOSX_ERROR_LOG",
+        str(Path(__file__).resolve().parent.parent.parent.parent / "knowledge" / "runtime_errors.jsonl"),
+    )
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    with open(log_path, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+    return {"logged": True, "entry": entry, "log_file": log_path}
