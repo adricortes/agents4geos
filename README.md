@@ -9,10 +9,10 @@ Instead of writing 200-500 lines of cross-referenced XML by hand, describe your 
 ```
 User Layer        /geos create... | /geos:edit | /geos:validate | Natural language
                                     |
-Agent Layer       Orchestrator skill + 9 slash commands + auto-validation hooks
+Agent Layer       Orchestrator skill + 10 slash commands + auto-validation hooks
                                     |  (MCP Protocol)
-Tool Layer        FastMCP Server — 42 tools in 5 groups
-                  Schema (7) | Fluids (9) | Mesh (8) | XML (11) | PostProc (7)
+Tool Layer        FastMCP Server — 46 tools in 5 groups
+                  Schema (7) | Fluids (10) | Mesh (8) | XML (13) | PostProc (8)
                                     |
 Data Layer        schema.xsd | GEOS inputFiles/ | PVT tables | VTK outputs
 ```
@@ -22,10 +22,10 @@ Data Layer        schema.xsd | GEOS inputFiles/ | PVT tables | VTK outputs
 | Group | Tools | Powered By | Purpose |
 |-------|-------|------------|---------|
 | **Schema & Introspection** | 7 | geos-tui schema parser | Query elements, attributes, types, cross-references |
-| **Fluid & Constitutive** | 9 | pyResToolbox (SI units) | Gas/oil/brine PVT, rel perm, cap pressure, well IPR |
+| **Fluid & Constitutive** | 10 | pyResToolbox (SI units) | Gas/oil/brine PVT, rel perm (model + table), cap pressure, well IPR |
 | **Mesh** | 8 | PyVista | Create/load meshes, statistics, headless screenshots, XML generation |
-| **XML Assembly & Validation** | 11 | geos-tui XML R/W + xmllint | Create/load/edit/save documents, validate cross-refs |
-| **Post-Processing** | 7 | PyVista + pyResToolbox | VTK output analysis, field screenshots, material balance |
+| **XML Assembly & Validation** | 13 | geos-tui XML R/W + xmllint | Create/load/edit/save documents, validate cross-refs, templates, geometry boxes |
+| **Post-Processing** | 8 | PyVista + pyResToolbox | VTK output analysis, field screenshots, Darcy velocity, material balance |
 
 ### Knowledge Base
 
@@ -51,9 +51,9 @@ These repositories must be available locally:
 
 | Dependency | Path (relative to this repo) | What it provides |
 |------------|------------------------------|------------------|
-| geos-tui | `../../geos-tui` (`~/geos-tui`) | Schema parser, XML reader/writer, templates, validation |
-| pyResToolbox (SI fork) | `../pyResToolbox` (`~/codes/pyResToolbox`) | Fluid PVT, relative permeability, well performance. Fork of [mwburgoyne/pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) with comprehensive SI unit refactoring. |
-| [PyVista](https://github.com/pyvista/pyvista) | `../pyvista` | Mesh creation, VTK I/O, headless visualization |
+| [geos-tui](https://github.com/adricortes/geos-tui) | `../../geos-tui` (`~/geos-tui`) | Schema parser, XML reader/writer, templates, validation |
+| [pyResToolbox](https://github.com/adricortes/pyResToolbox) (SI fork) | `../pyResToolbox` (`~/codes/pyResToolbox`) | Fluid PVT, relative permeability, well performance. Fork of [mwburgoyne/pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) with comprehensive SI unit refactoring. |
+| [PyVista](https://github.com/pyvista/pyvista) | `../pyvista` (`~/codes/pyvista`) | Mesh creation, VTK I/O, headless visualization |
 
 ## Installation
 
@@ -61,7 +61,7 @@ These repositories must be available locally:
 
 ```bash
 cd ~/codes
-git clone <this-repo> agents4geosx
+git clone git@github.com:adricortes/agents4geosx.git
 cd agents4geosx
 uv sync --all-extras
 ```
@@ -157,6 +157,12 @@ pressure outlet on the right at 20 MPa, run for 1 year with VTK output monthly
 /geos:validate my_sim.xml
 ```
 
+### Run a GEOS simulation and analyze output
+
+```
+/geos:run validate and run single_phase_flow.xml, then show me the pressure field
+```
+
 ### Analyze GEOS output
 
 ```
@@ -176,6 +182,80 @@ pressure outlet on the right at 20 MPa, run for 1 year with VTK output monthly
 | `/geos:relperm` | Generate relative permeability curves |
 | `/geos:postprocess` | Analyze GEOS VTK output |
 | `/geos:schema` | Query the GEOS XSD schema |
+| `/geos:run` | Run GEOS simulation and analyze output |
+
+## MCP Tools Reference
+
+### Schema & Introspection (7)
+
+| Tool | Purpose |
+|------|---------|
+| `list_sections` | Top-level XML sections |
+| `list_elements` | Elements in a section (v1 scope filter) |
+| `describe_element` | Full element details: attributes, children, description |
+| `list_attributes` | Attributes filtered by group (essential/physics/advanced) |
+| `get_type_info` | Type constraints, patterns, enums |
+| `lookup_field_names` | Valid BC/IC field names per solver type |
+| `get_cross_references` | What other sections an element's attributes reference |
+
+### Fluid & Constitutive (10)
+
+| Tool | Purpose |
+|------|---------|
+| `compute_gas_properties` | Z-factor, density, viscosity, Bg, Cg (SI) |
+| `compute_oil_properties` | Pb, Rs, Bo, density, viscosity (SI) |
+| `compute_brine_properties` | Density, viscosity, Bw (SI) |
+| `generate_pvt_table` | Full PVT table over pressure range |
+| `generate_rel_perm` | Brooks-Corey / VanGenuchten / LET relative permeability |
+| `create_table_rel_perm_xml` | Generate TableRelativePermeability + TableFunction XML from user data |
+| `fit_rel_perm` | Fit relperm model to measured data |
+| `generate_cap_pressure` | Brooks-Corey / VanGenuchten capillary pressure curve |
+| `compute_well_ipr` | Well inflow performance (radial flow) |
+| `recommend_fluid_model` | NL description → solver + full constitutive assembly |
+
+### Mesh (8)
+
+| Tool | Purpose |
+|------|---------|
+| `create_structured_mesh` | Uniform grid, saves VTK |
+| `create_rectilinear_mesh` | Variable-spacing grid |
+| `load_mesh` | Inspect existing mesh file |
+| `mesh_statistics` | Cell volumes, quality metrics |
+| `screenshot_mesh` | Publication-quality headless screenshot |
+| `generate_internal_mesh_xml` | GEOS InternalMesh XML snippet |
+| `define_geometry_box` | Single geometry Box XML snippet |
+| `suggest_mesh_resolution` | Heuristic mesh resolution advisor |
+
+### XML Assembly & Validation (13)
+
+| Tool | Purpose |
+|------|---------|
+| `list_templates` | Available templates with descriptions |
+| `generate_geometry_boxes` | All 7 standard BC boxes with correct cell-center sizing |
+| `create_document` | New document (blank or from template) |
+| `add_element` | Add element to a section |
+| `update_element` | Modify element attributes |
+| `remove_element` | Remove element (reports dangling refs) |
+| `add_child` | Add nested child element |
+| `load_xml` | Load existing XML for editing |
+| `save_xml` | Save + auto-validate with xmllint |
+| `preview_xml` | Write preview to file for readable display |
+| `validate_xml` | xmllint schema validation |
+| `validate_cross_references` | Check all internal name references resolve |
+| `diff_xml` | Structured diff between two XML files |
+
+### Post-Processing & Verification (8)
+
+| Tool | Purpose |
+|------|---------|
+| `read_vtk_output` | Inspect arrays, scalar ranges |
+| `extract_field` | Min/max/mean/std statistics |
+| `screenshot_field` | Publication-quality field visualization |
+| `compare_timesteps` | Field evolution over time |
+| `compute_darcy_velocity` | Derive v = -(k/μ)∇p from pressure field |
+| `compute_material_balance` | Reserves estimation from production data |
+| `compute_well_performance` | Quick well rate sanity check |
+| `sanity_check` | Physics heuristics + structural checks |
 
 ## GEOS Constitutive Assembly Pattern
 
@@ -217,18 +297,19 @@ The agent handles this assembly automatically via the `recommend_fluid_model` to
 | **Single-phase flow** | SinglePhaseFVM, SinglePhaseHybridFVM |
 | **Compositional multiphase** | CompositionalMultiphaseFVM, CompositionalMultiphaseHybridFVM |
 | **CO2-brine** | CO2BrinePhillipsFluid |
-| **Dead oil** | DeadOilFluid (template ready) |
+| **Dead oil** | DeadOilFluid (knowledge base ready) |
 | **Thermal coupling** | isThermal + ThermalCompressibleSinglePhaseFluid |
-| **Relative permeability** | BrooksCoreyRelativePermeability |
+| **Relative permeability** | BrooksCoreyRelativePermeability, TableRelativePermeability (from user data) |
 | **Non-solver sections** | Mesh, Events, Outputs, FieldSpecifications, Geometry, Functions |
 
 ### Deferred
 
 - Poromechanics / geomechanics solvers
 - Acoustic / seismic / earthquake solvers
-- Table-based relative permeability and capillary pressure
+- Table-based capillary pressure (TableCapillaryPressure, JFunctionCapillaryPressure)
 - Soreide-Whitson EOS (CompositionalTwoPhaseFluidPhillipsBrine)
 - Unstructured mesh generation (GMSH)
+- CO2BrineEzrokhiFluid
 
 ## HPC / Airgapped Installation
 
@@ -260,12 +341,12 @@ agents4geosx/
 ├── src/agents4geosx/
 │   ├── server.py              # FastMCP server entry point
 │   ├── config.py              # Schema path resolution
-│   ├── tools/                 # 5 tool modules (42 tools total)
+│   ├── tools/                 # 5 tool modules (46 tools total)
 │   │   ├── schema_tools.py    # Schema introspection (7)
-│   │   ├── fluid_tools.py     # Fluid PVT + constitutive (9)
+│   │   ├── fluid_tools.py     # Fluid PVT + constitutive (10)
 │   │   ├── mesh_tools.py      # Mesh creation + viz (8)
-│   │   ├── xml_tools.py       # XML assembly + validation (11)
-│   │   └── postproc_tools.py  # Post-processing (7)
+│   │   ├── xml_tools.py       # XML assembly + validation (13)
+│   │   └── postproc_tools.py  # Post-processing (8)
 │   ├── state/
 │   │   └── documents.py       # In-memory DocumentStore (doc_id → DocumentState)
 │   └── knowledge/             # Domain knowledge from GEOS inputFiles audit
@@ -273,7 +354,7 @@ agents4geosx/
 │       ├── cross_refs.py      # Attribute cross-reference graph
 │       ├── sanity_rules.py    # Physics heuristic checks
 │       └── fluid_models.py    # NL → constitutive assembly mapping
-├── skills/                    # Claude Code slash commands (9 .md files)
+├── skills/                    # Claude Code slash commands (10 .md files)
 ├── hooks/                     # Auto-validation + auto-screenshot hooks
 ├── tests/                     # 42 tests (schema, fluid, mesh, XML, postproc, integration)
 └── examples/                  # Example conversation transcripts
