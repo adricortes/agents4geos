@@ -2,10 +2,12 @@
 
 from pathlib import Path
 
+import json
+
 from agents4geosx.tools.xml_tools import (
     create_document, add_element, update_element, remove_element,
     add_child, load_xml, save_xml, preview_xml,
-    validate_cross_references,
+    validate_cross_references, log_runtime_error,
 )
 
 
@@ -106,3 +108,62 @@ def test_validate_cross_references_broken(schema):
     result = validate_cross_references(doc_id=doc_id)
     # Should find that "nonexistent" doesn't exist in NumericalMethods
     assert len(result["errors"]) > 0 or result["valid"] is True  # NumericalMethods section may not exist
+
+
+def test_log_runtime_error(tmp_path, monkeypatch):
+    """log_runtime_error extracts solver/constitutive from doc and appends JSONL."""
+    log_file = tmp_path / "runtime_errors.jsonl"
+    monkeypatch.setenv("AGENTS4GEOSX_ERROR_LOG", str(log_file))
+
+    doc = create_document(template="single_phase_flow")
+    doc_id = doc["doc_id"]
+
+    result = log_runtime_error(
+        doc_id=doc_id,
+        geos_error="***** ABORT: constitutive model not found",
+        error_summary="SinglePhaseFVM requires CompressibleSinglePhaseFluid",
+        fix_applied="Added CompressibleSinglePhaseFluid to Constitutive section",
+    )
+    assert result["logged"] is True
+    entry = result["entry"]
+    assert "SinglePhaseFVM" in entry["solvers"]
+    assert "CompressibleSinglePhaseFluid" in entry["constitutive_types"]
+    assert entry["error_summary"] == "SinglePhaseFVM requires CompressibleSinglePhaseFluid"
+    assert "timestamp" in entry
+
+    # Verify JSONL was written
+    assert log_file.exists()
+    with open(log_file) as f:
+        parsed = json.loads(f.readline())
+        assert parsed["error_summary"] == entry["error_summary"]
+
+
+def test_log_runtime_error_appends(tmp_path, monkeypatch):
+    """Multiple calls append separate lines."""
+    log_file = tmp_path / "runtime_errors.jsonl"
+    monkeypatch.setenv("AGENTS4GEOSX_ERROR_LOG", str(log_file))
+
+    doc = create_document(template="single_phase_flow")
+    doc_id = doc["doc_id"]
+
+    log_runtime_error(doc_id=doc_id, geos_error="error1",
+                      error_summary="first", fix_applied="fix1")
+    log_runtime_error(doc_id=doc_id, geos_error="error2",
+                      error_summary="second", fix_applied="fix2")
+
+    with open(log_file) as f:
+        lines = f.readlines()
+    assert len(lines) == 2
+    assert json.loads(lines[0])["error_summary"] == "first"
+    assert json.loads(lines[1])["error_summary"] == "second"
+
+
+def test_log_runtime_error_invalid_doc():
+    """Returns error for invalid doc_id."""
+    result = log_runtime_error(
+        doc_id="nonexistent",
+        geos_error="some error",
+        error_summary="summary",
+        fix_applied="fix",
+    )
+    assert "error" in result
