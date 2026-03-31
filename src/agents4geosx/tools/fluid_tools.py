@@ -17,7 +17,16 @@ def compute_gas_properties(
     h2s: float = 0.0,
     n2: float = 0.0,
 ) -> dict:
-    """Compute gas PVT properties at given conditions (all SI units)."""
+    """Compute gas PVT properties at given conditions (all SI units).
+
+    Args:
+        pressure_Pa: Pressure in Pascals.
+        temperature_K: Temperature in Kelvin.
+        specific_gravity: Gas specific gravity relative to air.
+        co2: Molar fraction of CO2 (0-1).
+        h2s: Molar fraction of H2S (0-1).
+        n2: Molar fraction of N2 (0-1).
+    """
     from pyrestoolbox import gas
 
     z = gas.gas_z(p=pressure_Pa, sg=specific_gravity, degf=temperature_K,
@@ -36,6 +45,23 @@ def compute_gas_properties(
         "viscosity_Pa_s": float(mu),
         "Bg_m3_m3": float(bg),
         "compressibility_1_Pa": float(cg),
+        "metadata": {
+            "z_factor_method": "DAK — Dranchuk & Abou-Kassem (1975), "
+                               "Eqs 2.7-2.8 from McCain et al. "
+                               "(pyResToolbox.gas.gas_z)",
+            "critical_properties_method": "PMC — Piper, McCain & Corredor (1999), "
+                                          "Eqs 2.4-2.6 from McCain et al. "
+                                          "(pyResToolbox.gas.gas_z)",
+            "viscosity_note": "Lee, Gonzalez & Eakin (1966), "
+                              "Eqs 2.14-2.17 from McCain et al. "
+                              "(pyResToolbox.gas.gas_ug)",
+            "density_note": "Derived from Z-factor via real gas law "
+                            "(pyResToolbox.gas.gas_den)",
+            "Bg_note": "Derived from Z-factor "
+                       "(pyResToolbox.gas.gas_bg)",
+            "compressibility_note": "Numerical derivative of Z-factor "
+                                    "(pyResToolbox.gas.gas_cg)",
+        },
     }
 
 
@@ -47,20 +73,32 @@ def compute_oil_properties(
     gas_sg: float,
     rsb_sm3_sm3: float,
 ) -> dict:
-    """Compute oil PVT properties at given conditions (all SI units)."""
+    """Compute oil PVT properties at given conditions (all SI units).
+
+    Args:
+        pressure_Pa: Pressure in Pascals.
+        temperature_K: Temperature in Kelvin.
+        api: Stock tank oil density in degrees API.
+        gas_sg: Weighted average specific gravity of surface gas (relative to air).
+        rsb_sm3_sm3: Oil solution gas volume at bubble point (sm3/sm3).
+    """
     from pyrestoolbox import oil
 
+    sg_o = 141.5 / (131.5 + api)
     pb = oil.oil_pbub(api=api, degf=temperature_K, rsb=rsb_sm3_sm3,
                       sg_g=gas_sg, units="SI")
     rs = oil.oil_rs(p=pressure_Pa, pb=pb, api=api, degf=temperature_K,
-                    rsb=rsb_sm3_sm3, sg_g=gas_sg, units="SI")
-    bo = oil.oil_bo(p=pressure_Pa, pb=pb, api=api, degf=temperature_K,
-                    rsb=rsb_sm3_sm3, sg_g=gas_sg, units="SI")
-    rho = oil.oil_deno(p=pressure_Pa, api=api, pb=pb, rs=rs, bo=bo, units="SI")
+                    rsb=rsb_sm3_sm3, sg_sp=gas_sg, units="SI")
+    bo = oil.oil_bo(p=pressure_Pa, pb=pb, degf=temperature_K,
+                    rs=rs, rsb=rsb_sm3_sm3, sg_o=sg_o,
+                    sg_g=gas_sg, units="SI")
+    rho = oil.oil_deno(p=pressure_Pa, degf=temperature_K, rs=rs,
+                       rsb=rsb_sm3_sm3, sg_g=gas_sg, pb=pb,
+                       api=api, units="SI")
     mu = oil.oil_viso(p=pressure_Pa, api=api, degf=temperature_K,
                       pb=pb, rs=rs, units="SI")
-    co = oil.oil_co(p=pressure_Pa, pb=pb, api=api, degf=temperature_K,
-                    rs=rs, units="SI")
+    co = oil.oil_co(p=pressure_Pa, api=api, degf=temperature_K,
+                    sg_g=gas_sg, pb=pb, rsb=rsb_sm3_sm3, units="SI")
     return {
         "pb_Pa": float(pb),
         "rs_sm3_sm3": float(rs),
@@ -68,6 +106,21 @@ def compute_oil_properties(
         "density_kg_m3": float(rho),
         "viscosity_Pa_s": float(mu),
         "compressibility_1_Pa": float(co),
+        "metadata": {
+            "bubble_point_method": "VALMC — Valko-McCain (2003) "
+                                   "(pyResToolbox.oil.oil_pbub)",
+            "rs_method": "VELAR — Velarde, Blasingame & McCain (1997) "
+                         "(pyResToolbox.oil.oil_rs)",
+            "density_method": "SWMH — Standing, Witte, McCain-Hill (1995) "
+                              "(pyResToolbox.oil.oil_deno)",
+            "bo_method": "MCAIN — McCain approach from densities "
+                         "(pyResToolbox.oil.oil_bo)",
+            "viscosity_note": "Beggs-Robinson (1975) at saturated pressures, "
+                              "Petrosky-Farshad (1995) at undersaturated pressures "
+                              "(pyResToolbox.oil.oil_viso)",
+            "compressibility_note": "EXPLT — Numerical derivative of Bo "
+                                    "(pyResToolbox.oil.oil_co)",
+        },
     }
 
 
@@ -76,19 +129,45 @@ def compute_brine_properties(
     pressure_Pa: float,
     temperature_K: float,
     salinity_wt_pct: float = 0.0,
-    co2_saturated: bool = False,
+    ch4_saturation: float = 0.0,
 ) -> dict:
-    """Compute water/brine PVT properties (all SI units)."""
+    """Compute water/brine PVT properties (all SI units).
+
+    Args:
+        pressure_Pa: Pressure in Pascals.
+        temperature_K: Temperature in Kelvin.
+        salinity_wt_pct: NaCl salt weight percent (0-100).
+        ch4_saturation: Degree of methane saturation (0-1). 0 = no dissolved CH4,
+                        1 = fully saturated at given P/T.
+    """
     from pyrestoolbox import brine
 
     result = brine.brine_props(p=pressure_Pa, degf=temperature_K,
-                               wt=salinity_wt_pct, units="SI")
-    # brine_props SI returns: (Bw, density_kg_m3, viscosity_Pa_s, [cw_list], Rs_ch4)
+                               wt=salinity_wt_pct, ch4_sat=ch4_saturation,
+                               units="SI")
+    # brine_props SI returns: (Bw, density_kg_m3, viscosity_Pa_s, [cw_usat, cw_sat], Rs_ch4)
+    cw_list = result[3]
+    cw_usat = float(cw_list[0]) if isinstance(cw_list, list) and len(cw_list) > 0 else 0.0
+    cw_sat = float(cw_list[1]) if isinstance(cw_list, list) and len(cw_list) > 1 else cw_usat
+
     return {
         "density_kg_m3": float(result[1]),
         "viscosity_Pa_s": float(result[2]),
         "Bw": float(result[0]),
-        "compressibility_1_Pa": float(result[3][0]) if isinstance(result[3], list) and len(result[3]) > 0 else 0.0,
+        "compressibility_undersaturated_1_Pa": cw_usat,
+        "compressibility_saturated_1_Pa": cw_sat,
+        "Rs_ch4_sm3_sm3": float(result[4]),
+        "metadata": {
+            "correlation": "Modified Spivey Correlation per McCain, "
+                           "Petroleum Reservoir Fluid Properties pg 160 "
+                           "(pyResToolbox.brine.brine_props)",
+            "density_note": "IAPWS-IF97 freshwater density with Spivey NaCl correction",
+            "viscosity_note": "Mao-Duan (2009) relative viscosity "
+                              "(pyResToolbox source comment, line 456)",
+            "salinity_convention": "NaCl weight percent",
+            "reference_state_Bw": "15 degC, 0.1013 MPa",
+            "ch4_saturation": ch4_saturation,
+        },
     }
 
 
@@ -98,22 +177,31 @@ def generate_pvt_table(
     pressure_range_Pa: list[float],
     temperature_K: float,
     n_rows: int = 50,
-) -> list[dict]:
-    """Generate a PVT table over a pressure range (all SI units)."""
+) -> dict:
+    """Generate a PVT table over a pressure range (all SI units).
+
+    Returns a dict with "rows" (list of property dicts per pressure) and
+    "metadata" (correlation provenance, reported once for the whole table).
+    """
     pressures = np.linspace(pressure_range_Pa[0], pressure_range_Pa[1], n_rows)
-    table = []
+    rows = []
+    metadata = {}
     for p in pressures:
         pf = float(p)
         if fluid_type == "gas":
-            row = compute_gas_properties(pressure_Pa=pf, temperature_K=temperature_K,
-                                         specific_gravity=0.7)
+            result = compute_gas_properties(pressure_Pa=pf, temperature_K=temperature_K,
+                                            specific_gravity=0.7)
         elif fluid_type == "water":
-            row = compute_brine_properties(pressure_Pa=pf, temperature_K=temperature_K)
+            result = compute_brine_properties(pressure_Pa=pf, temperature_K=temperature_K)
         else:
-            row = {}
-        row["pressure_Pa"] = pf
-        table.append(row)
-    return table
+            result = {}
+        if not metadata and "metadata" in result:
+            metadata = result.pop("metadata")
+        else:
+            result.pop("metadata", None)
+        result["pressure_Pa"] = pf
+        rows.append(result)
+    return {"rows": rows, "metadata": metadata}
 
 
 @mcp.tool
