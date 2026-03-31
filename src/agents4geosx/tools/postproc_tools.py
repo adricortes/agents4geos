@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 
 from agents4geosx.server import mcp
@@ -124,6 +126,56 @@ def compare_timesteps(file_paths: list[str], field_name: str) -> dict:
             "min": float(arr.min()), "max": float(arr.max()), "mean": float(arr.mean()),
         })
     return {"field": field_name, "timesteps": len(file_paths), "evolution": evolution}
+
+
+@mcp.tool
+def compute_darcy_velocity(
+    file_path: str,
+    permeability_m2: float,
+    viscosity_Pa_s: float,
+    output_path: str | None = None,
+) -> dict:
+    """Compute Darcy velocity v = -(k/mu) * grad(p) from a pressure field and add it to the mesh.
+
+    Saves the mesh with the new 'darcy_velocity' and 'darcy_velocity_magnitude' arrays.
+
+    Args:
+        file_path: Path to VTK file containing a 'pressure' field
+        permeability_m2: Isotropic permeability (m^2)
+        viscosity_Pa_s: Dynamic viscosity (Pa.s)
+        output_path: Where to save the result (default: appends _velocity to filename)
+    """
+    import pyvista as pv
+
+    mesh = pv.read(file_path)
+    if "pressure" not in mesh.array_names:
+        return {"error": "No 'pressure' field found in mesh"}
+
+    # Compute pressure gradient
+    grad = mesh.compute_derivative(scalars="pressure", gradient="pressure_gradient")
+    p_grad = grad["pressure_gradient"]  # shape (n_cells, 3)
+
+    # Darcy velocity: v = -(k/mu) * grad(p)
+    k_over_mu = permeability_m2 / viscosity_Pa_s
+    velocity = -k_over_mu * p_grad
+    magnitude = np.linalg.norm(velocity, axis=1)
+
+    mesh["darcy_velocity"] = velocity
+    mesh["darcy_velocity_magnitude"] = magnitude
+
+    if output_path is None:
+        p = Path(file_path)
+        output_path = str(p.parent / f"{p.stem}_velocity{p.suffix}")
+
+    mesh.save(output_path)
+
+    return {
+        "output_path": output_path,
+        "velocity_min_m_s": float(magnitude.min()),
+        "velocity_max_m_s": float(magnitude.max()),
+        "velocity_mean_m_s": float(magnitude.mean()),
+        "k_over_mu": k_over_mu,
+    }
 
 
 @mcp.tool

@@ -216,6 +216,58 @@ def compute_well_ipr(
 
 
 @mcp.tool
+def create_table_rel_perm_xml(
+    phase_names: list[str],
+    table_data: dict,
+) -> dict:
+    """Generate GEOS TableRelativePermeability XML + TableFunction definitions from user-provided table data.
+
+    Args:
+        phase_names: Phase names (e.g., ["water", "gas"] or ["oil", "gas", "water"])
+        table_data: Dict mapping phase name to {"saturation": [...], "kr": [...]} arrays.
+                    Example: {"water": {"saturation": [0.2, 0.4, 0.6, 0.8, 1.0], "kr": [0, 0.1, 0.3, 0.7, 1.0]},
+                              "gas": {"saturation": [0.0, 0.2, 0.4, 0.6, 0.8], "kr": [1.0, 0.6, 0.3, 0.1, 0]}}
+    """
+    table_functions = []
+    table_names = []
+
+    for phase in phase_names:
+        if phase not in table_data:
+            return {"error": f"Missing table data for phase '{phase}'"}
+        data = table_data[phase]
+        sat = data["saturation"]
+        kr = data["kr"]
+        if len(sat) != len(kr):
+            return {"error": f"Phase '{phase}': saturation and kr arrays must have same length"}
+
+        func_name = f"{phase}RelPermTable"
+        table_names.append(func_name)
+        coords_str = ", ".join(str(s) for s in sat)
+        values_str = ", ".join(str(k) for k in kr)
+        table_functions.append(
+            f'<TableFunction name="{func_name}"\n'
+            f'  coordinates="{{ {coords_str} }}"\n'
+            f'  values="{{ {values_str} }}"/>'
+        )
+
+    phases_str = ", ".join(phase_names)
+    tables_str = ", ".join(table_names)
+    relperm_xml = (
+        f'<TableRelativePermeability name="relperm"\n'
+        f'  phaseNames="{{ {phases_str} }}"\n'
+        f'  wettingNonWettingRelPermTableNames="{{ {tables_str} }}"/>'
+    )
+
+    return {
+        "relperm_xml": relperm_xml,
+        "table_function_xmls": table_functions,
+        "table_names": table_names,
+        "instructions": "Add TableFunctions to <Functions> section and TableRelativePermeability to <Constitutive>. "
+                        "Include 'relperm' in materialList.",
+    }
+
+
+@mcp.tool
 def recommend_fluid_model(description: str) -> dict:
     """Recommend GEOS solver and constitutive models from a natural language description."""
     return recommend_model(description)

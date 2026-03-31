@@ -13,7 +13,7 @@ from agents4geosx.state.documents import DocumentStore
 from geos_tui.xml.reader import XMLReader
 from geos_tui.xml.writer import XMLWriter
 from geos_tui.xml.state import DocumentState, ElementState
-from geos_tui.domain.templates import build_template_state
+from geos_tui.domain.templates import build_template_state, TEMPLATES
 from agents4geosx.knowledge.cross_refs import ATTRIBUTE_REFERENCES
 from agents4geosx.knowledge.sanity_rules import run_sanity_checks
 
@@ -134,6 +134,81 @@ def _check_refs(el: ElementState, path: str, named: dict[str, set[str]], errors:
 # ---------------------------------------------------------------------------
 # MCP Tools
 # ---------------------------------------------------------------------------
+
+@mcp.tool
+def list_templates() -> list[dict]:
+    """List available document templates with their descriptions."""
+    return [
+        {
+            "key": key,
+            "label": tmpl["label"],
+            "description": tmpl["description"],
+            "sections": list(tmpl["sections"].keys()),
+        }
+        for key, tmpl in TEMPLATES.items()
+    ]
+
+
+@mcp.tool
+def generate_geometry_boxes(
+    domain_lx: float,
+    domain_ly: float,
+    domain_lz: float,
+    cell_dx: float,
+    cell_dy: float,
+    cell_dz: float,
+) -> dict:
+    """Generate standard geometry boxes for boundary conditions that correctly enclose cell centers.
+
+    Produces boxes for: all, xneg (left), xpos (right), yneg (front), ypos (back), zneg (bottom), zpos (top).
+    Each box extends one cell deep to capture ElementRegions cell centers.
+
+    Args:
+        domain_lx: Domain length in X (meters)
+        domain_ly: Domain length in Y (meters)
+        domain_lz: Domain length in Z (meters)
+        cell_dx: Cell size in X (meters)
+        cell_dy: Cell size in Y (meters)
+        cell_dz: Cell size in Z (meters)
+    """
+    tol = 0.01
+    boxes = {
+        "all": {
+            "xMin": f"{{ {-tol}, {-tol}, {-tol} }}",
+            "xMax": f"{{ {domain_lx + tol}, {domain_ly + tol}, {domain_lz + tol} }}",
+        },
+        "xneg": {
+            "xMin": f"{{ {-tol}, {-tol}, {-tol} }}",
+            "xMax": f"{{ {cell_dx + tol}, {domain_ly + tol}, {domain_lz + tol} }}",
+        },
+        "xpos": {
+            "xMin": f"{{ {domain_lx - cell_dx - tol}, {-tol}, {-tol} }}",
+            "xMax": f"{{ {domain_lx + tol}, {domain_ly + tol}, {domain_lz + tol} }}",
+        },
+        "yneg": {
+            "xMin": f"{{ {-tol}, {-tol}, {-tol} }}",
+            "xMax": f"{{ {domain_lx + tol}, {cell_dy + tol}, {domain_lz + tol} }}",
+        },
+        "ypos": {
+            "xMin": f"{{ {-tol}, {domain_ly - cell_dy - tol}, {-tol} }}",
+            "xMax": f"{{ {domain_lx + tol}, {domain_ly + tol}, {domain_lz + tol} }}",
+        },
+        "zneg": {
+            "xMin": f"{{ {-tol}, {-tol}, {-tol} }}",
+            "xMax": f"{{ {domain_lx + tol}, {domain_ly + tol}, {cell_dz + tol} }}",
+        },
+        "zpos": {
+            "xMin": f"{{ {-tol}, {-tol}, {domain_lz - cell_dz - tol} }}",
+            "xMax": f"{{ {domain_lx + tol}, {domain_ly + tol}, {domain_lz + tol} }}",
+        },
+    }
+
+    xml_snippets = []
+    for name, coords in boxes.items():
+        xml_snippets.append(f'<Box name="{name}" xMin="{coords["xMin"]}" xMax="{coords["xMax"]}"/>')
+
+    return {"boxes": boxes, "xml_snippets": xml_snippets}
+
 
 @mcp.tool
 def create_document(template: str | None = None) -> dict:
