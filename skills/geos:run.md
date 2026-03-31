@@ -5,29 +5,47 @@ description: Run a GEOS simulation and analyze the output.
 
 CRITICAL: Use ONLY the `agents4geosx` MCP tools for post-processing. Use Bash ONLY for the GEOS run itself.
 
-## Workflow
+## Before Running
 
-1. **Verify the XML** before running:
+1. **Read lessons learned** — check `knowledge/lessons_learned.md` for known
+   solver/constitutive compatibility rules that apply to your XML. This avoids
+   repeat failures that previous runs have already diagnosed.
+
+2. **Verify the XML** before running:
    ```
    /geos:validate <file.xml>
    ```
 
-2. **Run GEOS** via Bash (this is the one place Bash is appropriate):
-   ```bash
-   cd <run_directory>
-   geos/build/bin/geosx -i <file.xml>
-   ```
-   Check the output for errors. Common issues:
-   - "coupled solid constitutive model not found" → missing CompressibleSolidConstantPermeability in materialList
-   - "targets empty set" → geometry box doesn't enclose cell centers (needs to be one cell deep)
-   - "component fractions do not sum to 1" → globalCompFraction initialization error
+## Running GEOS
 
-3. **Locate the VTK output** (usually in `vtkOutput/` subdirectory):
+Run via Bash (this is the one place Bash is appropriate):
+```bash
+cd <run_directory>
+geos/build/bin/geosx -i <file.xml>
+```
+
+## After a Failed Run
+
+If `geosx -i` exits with a non-zero code:
+1. Diagnose and fix the issue
+2. Re-run to confirm the fix works
+3. Call `log_runtime_error` with the full context: the GEOS error text,
+   your one-line diagnosis, and what fix resolved it
+
+If the fix fails after 3 attempts, call `log_runtime_error` anyway with
+fix_applied="UNRESOLVED" so the error is captured for future curation.
+
+This logging step is NOT optional. It captures your understanding of what
+went wrong while the context is fresh.
+
+## After a Successful Run
+
+1. **Locate the VTK output** (usually in `vtkOutput/` subdirectory):
    ```bash
    find . -name "*.vtu" | head -5
    ```
 
-4. **Analyze with MCP tools** (use ABSOLUTE paths):
+2. **Analyze with MCP tools** (use ABSOLUTE paths):
    - `read_vtk_output(path)` → list available fields
    - `extract_field(path, field_name)` → statistics
    - `screenshot_field(path, field_name, title="...", output_path="...")` → publication-quality figure
