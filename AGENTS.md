@@ -123,3 +123,172 @@ Three tiers based on cognitive complexity:
 - *Knowledge:* `lessons_learned.md`
 - *Inputs:* Error log directory
 - *Outputs:* Curated JSONL + updated lessons learned
+
+---
+
+## 4. Tool Inventory
+
+46 MCP tools + `health_check`, grouped by domain.
+
+### Schema & Introspection (7 tools)
+
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `list_sections` | Top-level XML sections | schema, geos |
+| `list_elements` | Elements in a section (v1 filtered) | schema, geos |
+| `describe_element` | Full element detail (attrs, children, description) | schema, inspect, geos |
+| `list_attributes` | Attributes by group (essential/physics/advanced) | schema, geos |
+| `get_type_info` | Type constraints, patterns, enums | schema |
+| `lookup_field_names` | Valid BC/IC fields per solver | schema, geos |
+| `get_cross_references` | Attribute → section mapping | schema, geos |
+
+### Fluid & Constitutive (10 tools)
+
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `compute_gas_properties` | Z-factor, density, viscosity, Bg, Cg (SI) | fluids |
+| `compute_oil_properties` | Pb, Rs, Bo, density, viscosity (SI) | fluids |
+| `compute_brine_properties` | Brine density, viscosity, Bw (SI) | fluids |
+| `generate_pvt_table` | PVT table over pressure range | fluids |
+| `generate_rel_perm` | Brooks-Corey/VG/LET relperm curves | relperm |
+| `fit_rel_perm` | Fit relperm model to measured data | relperm |
+| `generate_cap_pressure` | Brooks-Corey/VG capillary pressure curves | relperm |
+| `compute_well_ipr` | Radial flow well IPR | fluids |
+| `create_table_rel_perm_xml` | TableRelativePermeability + TableFunction XML | relperm |
+| `recommend_fluid_model` | NL → solver + full constitutive assembly | fluids, geos |
+
+### Mesh (8 tools)
+
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `create_structured_mesh` | Uniform grid → VTK | mesh |
+| `create_rectilinear_mesh` | Variable-spacing grid → VTK | mesh |
+| `load_mesh` | Inspect existing mesh file | mesh |
+| `mesh_statistics` | Cell volumes, quality metrics | mesh |
+| `screenshot_mesh` | Headless mesh render | mesh |
+| `generate_internal_mesh_xml` | GEOS InternalMesh XML snippet | mesh, geos |
+| `define_geometry_box` | Single Box XML for BC regions | mesh, geos |
+| `suggest_mesh_resolution` | Heuristic resolution advisor | mesh |
+
+### XML Assembly & Validation (14 tools)
+
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `list_templates` | Available document templates | geos |
+| `generate_geometry_boxes` | 7 standard BC boxes | geos |
+| `create_document` | New doc (blank or template) | geos, edit |
+| `add_element` | Add element to section | geos, edit |
+| `update_element` | Modify element attributes | geos, edit |
+| `remove_element` | Remove element + report dangling refs | edit |
+| `add_child` | Add nested child element | geos, edit |
+| `load_xml` | Load existing XML for editing | edit, validate, inspect |
+| `save_xml` | Save + auto-validate with xmllint | edit, geos |
+| `preview_xml` | Write preview to file | edit, inspect, geos |
+| `validate_xml` | xmllint schema validation | validate |
+| `validate_cross_references` | Check internal name refs resolve | validate, edit, geos |
+| `diff_xml` | Structured diff between two files | edit |
+| `log_runtime_error` | Log error to JSONL for learning | run, curate-errors |
+
+### Post-Processing & Verification (7 tools)
+
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `read_vtk_output` | Inspect VTK arrays and ranges | postprocess, run |
+| `extract_field` | Min/max/mean/std statistics | postprocess, run |
+| `screenshot_field` | Publication-quality field visualization | postprocess, run |
+| `compare_timesteps` | Field evolution over time | postprocess |
+| `compute_darcy_velocity` | v = -(k/μ)∇p from pressure field | postprocess |
+| `compute_material_balance` | Original-in-place estimate | postprocess |
+| `compute_well_performance` | Well rate sanity check | postprocess |
+
+### Utility (2 tools)
+
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `health_check` | Server status | any |
+| `sanity_check` | Physics heuristics + structural checks | validate, edit, geos |
+
+---
+
+## 5. Knowledge Modules
+
+Domain knowledge sourced primarily from an audit of 200+ official GEOS input files,
+supplemented by runtime error lessons.
+
+| Module | File | What it encodes | Provenance | Consumed by tools |
+|--------|------|----------------|------------|-------------------|
+| **Field names** | `knowledge/field_names.py` | Solver type → valid BC/IC field names | GEOS inputFiles audit | `lookup_field_names`, `sanity_check` |
+| **Fluid models** | `knowledge/fluid_models.py` | NL keywords → solver + constitutive assembly (6 scenarios) | GEOS inputFiles audit + curated physics defaults | `recommend_fluid_model` |
+| **Cross-references** | `knowledge/cross_refs.py` | Attribute → target section mapping | XSD schema structure | `get_cross_references`, `validate_cross_references` |
+| **Sanity rules** | `knowledge/sanity_rules.py` | Physics heuristics + structural checks | GEOS inputFiles audit + runtime errors | `sanity_check` |
+| **Lessons learned** | `knowledge/lessons_learned.md` | Runtime error patterns + fixes (prose) | Curated from GEOS runs | `geos:run`, `geos:curate-errors` (read by agent, not tool) |
+
+**Key principle:** Knowledge modules are the single source of truth for domain patterns.
+Tools read from them — they never hardcode domain logic. When a new pattern is discovered
+(e.g., via runtime error logging), it gets added to the appropriate knowledge module, not
+to a tool.
+
+---
+
+## 6. Coordination Patterns
+
+### Pipeline
+
+Agent A produces structured output → Agent B validates/transforms it → Agent C acts on it.
+Each stage has a clear input/output contract. If a stage fails, the pipeline halts — it
+does not silently pass garbage downstream.
+
+*Current example:* `geos:fluids` (recommend model) → `geos` (assemble XML) → `geos:validate` (check result)
+
+*Anticipated example:* PDF reader (extract data) → Reviewer (validate coherence) → `geos` (build simulation)
+
+### Fan-out
+
+The orchestrator dispatches multiple independent agents in parallel, then merges results.
+Useful when subtasks have no shared state.
+
+*Current example:* `geos` dispatching `geos:mesh` and `geos:fluids` concurrently — mesh creation and fluid model selection are independent.
+
+### Feedback loop
+
+Agent A produces output → Agent B reviews it → if issues found, Agent A is re-invoked
+with the review feedback. Bounded by a max-iteration count to prevent infinite cycles.
+
+*Anticipated example:* PDF reader extracts a table → Reviewer flags inconsistencies → PDF reader re-extracts with corrective instructions → Reviewer approves.
+
+### Cross-cutting principles
+
+- Every agent-to-agent handoff must pass **structured data** (dicts, tables), never free-form prose
+- The orchestrator (`geos`) is the only agent that talks to the user — sub-agents report back to the orchestrator
+- Quality gates (reviewer agents) are recommended for any pipeline that ingests external data (PDFs, user-provided tables, third-party files)
+
+---
+
+## 7. Extension Guide
+
+### Conventions
+
+- Each agent gets a skill file in `skills/` named `geos:<domain>.md`
+- Each agent gets an entry in the Agent Registry (Section 3)
+- New MCP tools go in `tools/<group>_tools.py` (or a new file if no group fits)
+- New domain knowledge goes in `knowledge/<module>.py` with provenance documented
+- New coordination patterns get documented in Section 6
+
+### Template for new agent entry
+
+    **`geos:<name>`** — Tier <1|2|3>
+    - *Description:* <one-line purpose>
+    - *Tools:* <list of MCP tools this agent may call>
+    - *Knowledge:* <knowledge modules it depends on, or "None">
+    - *Inputs:* <what it receives>
+    - *Outputs:* <what it produces>
+    - *Coordination:* <pattern it participates in, e.g., "pipeline stage 2 after geos:read-pdf">
+
+### Checklist for adding a new agent
+
+1. Write the skill file (`skills/geos:<name>.md`)
+2. Add tools if needed (with tests)
+3. Add knowledge modules if needed (with provenance documented)
+4. Add the agent entry to this file's Agent Registry (Section 3)
+5. Update the Tool Inventory (Section 4) if new tools were added
+6. If the agent introduces a new coordination pattern, document it in Section 6
