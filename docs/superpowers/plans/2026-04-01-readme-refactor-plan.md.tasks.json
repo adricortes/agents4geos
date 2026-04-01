@@ -1,0 +1,12 @@
+{
+  "planPath": "docs/superpowers/plans/2026-04-01-readme-refactor-plan.md",
+  "tasks": [
+    {
+      "id": 16,
+      "subject": "Task 1: Rewrite README.md",
+      "status": "pending",
+      "description": "**Goal:** Replace README.md with user-facing quickstart + bird's-eye architecture overview.\n\n**Files:**\n- Rewrite: `README.md`\n\n**Acceptance Criteria:**\n- [ ] Agent team framing\n- [ ] Usage examples kept with 11-command table\n- [ ] Bird's-eye architecture with compact group table\n- [ ] Slim physics scope\n- [ ] Updated counts (49 tests, 48 tools, 11 skills)\n- [ ] No duplicated content from AGENTS.md\n\n**Verify:** `wc -l README.md` — expect ~200-250 lines\n\n```json:metadata\n{\"files\": [\"README.md\"], \"verifyCommand\": \"wc -l README.md\", \"acceptanceCriteria\": [\"agent team framing\", \"usage examples kept\", \"bird-eye architecture\", \"slim physics\", \"updated counts\", \"no duplicated content\"], \"requiresUserVerification\": false}\n```"
+    }
+  ],
+  "lastUpdated": "2026-04-01T00:00:00Z"
+}
