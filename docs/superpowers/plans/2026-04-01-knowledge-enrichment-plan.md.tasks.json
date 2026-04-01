@@ -1,0 +1,38 @@
+{
+  "planPath": "docs/superpowers/plans/2026-04-01-knowledge-enrichment-plan.md",
+  "tasks": [
+    {
+      "id": 23,
+      "subject": "Task 1: Create unit_conventions.py knowledge module",
+      "status": "pending",
+      "description": "**Goal:** Create unit conventions module with GEOS unit defs, SI prefixes, pyResToolbox mapping, bracket notation regex, validation function.\n\n**Verify:** `uv run pytest tests/test_unit_conventions.py -v`\n\n```json:metadata\n{\"files\": [\"src/agents4geosx/knowledge/unit_conventions.py\", \"tests/test_unit_conventions.py\"], \"verifyCommand\": \"uv run pytest tests/test_unit_conventions.py -v\", \"acceptanceCriteria\": [\"full unit definitions\", \"SI prefixes\", \"pyResToolbox mapping\", \"bracket regex\", \"validation function\", \"attribution\", \"tests pass\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 24,
+      "subject": "Task 2: Create preprocessing_rules.py knowledge module",
+      "status": "pending",
+      "description": "**Goal:** Create preprocessing rules module with full pipeline, parameter/symbolic/include rules.\n\n**Verify:** `uv run pytest tests/test_preprocessing_rules.py -v`\n\n```json:metadata\n{\"files\": [\"src/agents4geosx/knowledge/preprocessing_rules.py\", \"tests/test_preprocessing_rules.py\"], \"verifyCommand\": \"uv run pytest tests/test_preprocessing_rules.py -v\", \"acceptanceCriteria\": [\"5-stage pipeline\", \"parameter rules\", \"symbolic math rules\", \"include rules\", \"special characters\", \"attribution\", \"tests pass\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 25,
+      "subject": "Task 3: Create formatting_conventions.py knowledge module",
+      "status": "pending",
+      "description": "**Goal:** Create formatting conventions module with default format, attribute formatting, protected expressions.\n\n**Verify:** `uv run pytest tests/test_formatting_conventions.py -v`\n\n```json:metadata\n{\"files\": [\"src/agents4geosx/knowledge/formatting_conventions.py\", \"tests/test_formatting_conventions.py\"], \"verifyCommand\": \"uv run pytest tests/test_formatting_conventions.py -v\", \"acceptanceCriteria\": [\"default format\", \"attribute formatting\", \"protected expressions\", \"attribution\", \"tests pass\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 26,
+      "subject": "Task 4: Update existing knowledge modules",
+      "status": "pending",
+      "blockedBy": [23, 24, 25],
+      "description": "**Goal:** Add STRUCTURAL_RULES to sanity_rules, NESTING_CONSTRAINTS to cross_refs, schema validation lesson to lessons_learned.\n\n**Verify:** `uv run pytest tests/ -v`\n\n```json:metadata\n{\"files\": [\"src/agents4geosx/knowledge/sanity_rules.py\", \"src/agents4geosx/knowledge/cross_refs.py\", \"knowledge/lessons_learned.md\"], \"verifyCommand\": \"uv run pytest tests/ -v\", \"acceptanceCriteria\": [\"new sanity rules\", \"nesting constraints\", \"lessons learned updated\", \"all tests pass\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 27,
+      "subject": "Task 5: Wire new knowledge into tools",
+      "status": "pending",
+      "blockedBy": [26],
+      "description": "**Goal:** Update sanity_check and validate_cross_references to read from new knowledge modules.\n\n**Verify:** `uv run pytest tests/ -v`\n\n```json:metadata\n{\"files\": [\"src/agents4geosx/tools/postproc_tools.py\", \"src/agents4geosx/tools/xml_tools.py\"], \"verifyCommand\": \"uv run pytest tests/ -v\", \"acceptanceCriteria\": [\"unit validation in sanity_check\", \"special char detection\", \"nesting check in validate_cross_references\", \"all tests pass\"], \"requiresUserVerification\": false}\n```"
+    }
+  ],
+  "lastUpdated": "2026-04-01T12:00:00Z"
+}
