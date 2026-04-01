@@ -134,6 +134,22 @@ def _check_refs(el: ElementState, path: str, named: dict[str, set[str]], errors:
         _check_refs(child, current, named, errors)
 
 
+def _check_nesting_recursive(el, errors: list, parent_type: str = "") -> None:
+    """Recursively check nesting constraints."""
+    from agents4geosx.knowledge.cross_refs import check_nesting
+    el_type = el.schema_element.name if hasattr(el, "schema_element") else ""
+    if parent_type and el_type:
+        result = check_nesting(parent_type, el_type)
+        if not result["valid"]:
+            errors.append({
+                "source": f"{parent_type}/{el_type}",
+                "target": "",
+                "message": result["reason"],
+            })
+    for child in el.children:
+        _check_nesting_recursive(child, errors, el_type)
+
+
 # ---------------------------------------------------------------------------
 # MCP Tools
 # ---------------------------------------------------------------------------
@@ -487,6 +503,11 @@ def validate_cross_references(doc_id: str) -> dict:
 
     errors: list[dict] = []
     _check_refs(doc.root, "", named, errors)
+
+    # Nesting constraint checks (from cross_refs knowledge module)
+    from agents4geosx.knowledge.cross_refs import check_nesting
+    _check_nesting_recursive(doc.root, errors)
+
     return {"valid": len(errors) == 0, "errors": errors}
 
 

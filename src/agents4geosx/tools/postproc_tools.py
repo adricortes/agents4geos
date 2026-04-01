@@ -237,6 +237,40 @@ def sanity_check(doc_id: str) -> dict:
     checks = run_sanity_checks(all_attrs)
     structural = check_document_structure(doc.root)
     checks.extend(structural)
+
+    # Unit expression validation (from unit_conventions knowledge module)
+    from agents4geosx.knowledge.unit_conventions import validate_unit_expression
+    from agents4geosx.knowledge.preprocessing_rules import SPECIAL_CHARACTERS
+    import re
+    for attr_name, attr_value in all_attrs.items():
+        # Check bracket notation uses valid units
+        if "[" in attr_value and "]" in attr_value:
+            unit_result = validate_unit_expression(attr_value)
+            if not unit_result["valid"]:
+                checks.append({
+                    "name": "invalid_unit_expression",
+                    "attribute": attr_name,
+                    "value": attr_value,
+                    "status": "fail",
+                    "message": f"Unknown unit(s) in bracket notation: {unit_result['unknown']}",
+                })
+        # Flag leftover special characters (unresolved preprocessing)
+        for char in SPECIAL_CHARACTERS:
+            if char in attr_value:
+                # Skip bracket notation (valid unit expressions contain [ and ])
+                if char in "[]" and re.search(r"\d\s*\[", attr_value):
+                    continue
+                # Flag unresolved parameters ($) and symbolic expressions (`)
+                if char in "$`":
+                    checks.append({
+                        "name": "unresolved_preprocessing",
+                        "attribute": attr_name,
+                        "value": attr_value,
+                        "status": "advisory",
+                        "message": f"Contains '{char}' — may be an unresolved "
+                                   f"{'parameter' if char == '$' else 'symbolic expression'}",
+                    })
+
     return {
         "checks": checks,
         "total": len(checks),
