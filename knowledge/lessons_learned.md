@@ -79,3 +79,16 @@ correct pattern to avoid it.
 ## NumericalMethods Rules
 
 (No runtime lessons yet — add here as discovered.)
+
+## Schema Validation
+
+### Schema validation is necessary but not sufficient
+- **Context:** The XSD schema (`schema.xsd`) is auto-generated from C++ source code
+- **Limitation:** `xmllint` validates XML structure against the schema, but cannot catch
+  physics errors (wrong permeability range), cross-reference inconsistencies (dangling
+  names), or preprocessing issues (unresolved parameters)
+- **Right approach:** Always use all three validation layers together:
+  1. Schema validation (`validate_xml` / `xmllint`)
+  2. Cross-reference validation (`validate_cross_references`)
+  3. Physics sanity checks (`sanity_check`)
+- **Source:** GEOS Developer Guide — XML Key Components

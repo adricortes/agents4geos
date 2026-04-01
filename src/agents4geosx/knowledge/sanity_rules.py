@@ -53,6 +53,27 @@ COUPLED_SOLID_TYPES = {
 }
 
 
+# Structural validation rules beyond physics heuristics.
+# These check document structure patterns that the XSD schema alone cannot enforce.
+STRUCTURAL_RULES: list[dict] = [
+    {
+        "name": "required_attributes",
+        "description": "REQUIRED attributes (InputFlags) must be present",
+        "severity": "error",
+    },
+    {
+        "name": "redundant_defaults",
+        "description": "Attributes matching schema default values are redundant",
+        "severity": "advisory",
+    },
+    {
+        "name": "empty_elements",
+        "description": "Elements with no required children and no actual children may be unnecessary",
+        "severity": "advisory",
+    },
+]
+
+
 def run_sanity_checks(attributes: dict[str, str]) -> list[dict]:
     """Run physics sanity checks on attribute values.
 
