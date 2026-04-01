@@ -31,3 +31,27 @@ def get_cross_references(element_name: str, attributes: list) -> list[dict]:
                 "description": ref_info["description"],
             })
     return refs
+
+
+# Nesting constraints from geos-xml-tools attribute coverage analysis.
+# Elements that cannot appear nested within themselves.
+NESTING_CONSTRAINTS: dict = {
+    "self_nesting_prohibited": [
+        "PeriodicEvent",
+    ],
+}
+
+
+def check_nesting(parent_type: str, child_type: str) -> dict:
+    """Check if nesting child_type inside parent_type is valid.
+
+    Returns:
+        {"valid": bool, "reason": str}
+    """
+    if child_type in NESTING_CONSTRAINTS["self_nesting_prohibited"]:
+        if parent_type == child_type:
+            return {
+                "valid": False,
+                "reason": f"{child_type} cannot be nested within itself",
+            }
+    return {"valid": True, "reason": ""}
