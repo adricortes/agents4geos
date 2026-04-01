@@ -1,7 +1,7 @@
 # CLAUDE.md — Agents4GEOSX
 
 ## Overview
-MCP server providing 42 tools for natural-language GEOS XML input creation.
+MCP server providing 48 tools for natural-language GEOS XML input creation.
 Built on geos-tui (schema/xml), pyResToolbox (fluid PVT), PyVista (mesh/VTK).
 
 ## Commands
@@ -16,6 +16,7 @@ Built on geos-tui (schema/xml), pyResToolbox (fluid PVT), PyVista (mesh/VTK).
 - `src/agents4geosx/knowledge/` — Domain knowledge (field names, cross-refs, sanity rules)
 - `skills/` — Claude Code slash command skills
 - `hooks/` — Auto-validation and auto-screenshot hooks
+- `AGENTS.md` — Agent architecture: taxonomy, tiers, registry, coordination patterns
 
 ## Key dependency: geos-tui
 Schema path default: resolved via GEOS_SCHEMA env var or ../../geos-tui/geos/build/schema.xsd
