@@ -10,10 +10,10 @@ CRITICAL: Use ONLY the `agents4geosx` MCP tools. NEVER edit XML files directly w
 1. `load_xml(file_path)` — load and parse the file
 2. `preview_xml(doc_id)` — ALWAYS preview first to understand current structure
 3. Apply changes using the appropriate tool:
-   - `update_element(doc_id, path, attributes)` — modify existing element attributes
-   - `add_element(doc_id, section, type, name, attrs)` — add NEW elements only
-   - `add_child(doc_id, parent_path, type, name, attrs)` — add nested child elements
-   - `remove_element(doc_id, path)` — remove elements (check dangling_references in response)
+   - `update_element(doc_id, element_path, attributes)` — modify existing element attributes
+   - `add_element(doc_id, section, element_type, name, attributes)` — add NEW elements only
+   - `add_child(doc_id, parent_path, element_type, name, attributes)` — add nested child elements
+   - `remove_element(doc_id, element_path)` — remove elements (check dangling_references in response)
 4. `validate_cross_references(doc_id)` — ALWAYS check after changes
 5. `sanity_check(doc_id)` — ALWAYS run physics checks
 6. `preview_xml(doc_id)` — show user what changed

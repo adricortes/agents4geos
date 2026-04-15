@@ -371,12 +371,15 @@ def remove_element(doc_id: str, element_path: str) -> dict:
 def add_child(doc_id: str, parent_path: str, element_type: str, name: str, attributes: dict) -> dict:
     """Add a child element under an existing parent element.
 
+    IMPORTANT: Parameter names are element_type and name (NOT child_type/child_name).
+    The attributes parameter must be a dict {} (NOT a JSON string "{}").
+
     Args:
         doc_id: Document ID
         parent_path: Path to parent (e.g., "Solvers/SinglePhaseFVM[@name='flow']")
-        element_type: Child element type (e.g., 'NonlinearSolverParameters')
-        name: Name attribute (pass empty string for elements that don't accept a name)
-        attributes: Attribute dict
+        element_type: Child element type (e.g., 'NonlinearSolverParameters', 'TwoPointFluxApproximation')
+        name: Name attribute value (pass empty string "" for elements that don't accept a name)
+        attributes: Dict of attribute name->value pairs, e.g. {"solverType": "direct"}
     """
     doc = _store.get(doc_id)
     if doc is None:
