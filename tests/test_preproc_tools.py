@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import pytest
-from agents4geosx.tools.preproc_tools import convert_units
+from agents4geosx.tools.preproc_tools import convert_units, expand_parameters
+from agents4geosx.tools.xml_tools import create_document, add_element
 
 
 class TestConvertUnits:
@@ -73,3 +74,36 @@ class TestConvertUnits:
         result = convert_units("100[ft]")
         assert result["valid"] is True
         assert abs(result["si_value"] - 30.48) < 1e-6
+
+
+class TestExpandParameters:
+    def test_basic_expansion(self, schema):
+        doc = create_document()
+        doc_id = doc["doc_id"]
+        add_element(doc_id, "Parameters", "Parameter", "injRate",
+                    {"value": "1e-4"})
+        add_element(doc_id, "FieldSpecifications", "FieldSpecification", "injection",
+                    {"scale": "$injRate$", "fieldName": "pressure"})
+        result = expand_parameters(doc_id)
+        assert result["parameters_found"]["injRate"] == "1e-4"
+        assert result["substitutions_made"] >= 1
+        assert len(result["unresolved"]) == 0
+
+    def test_unresolved_parameter(self, schema):
+        doc = create_document()
+        doc_id = doc["doc_id"]
+        add_element(doc_id, "FieldSpecifications", "FieldSpecification", "injection",
+                    {"scale": "$undefinedParam$", "fieldName": "pressure"})
+        result = expand_parameters(doc_id)
+        assert "undefinedParam" in result["unresolved"]
+
+    def test_no_parameters_section(self, schema):
+        doc = create_document()
+        doc_id = doc["doc_id"]
+        result = expand_parameters(doc_id)
+        assert result["parameters_found"] == {}
+        assert result["substitutions_made"] == 0
+
+    def test_invalid_doc_id(self):
+        result = expand_parameters("nonexistent")
+        assert "error" in result
