@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import pytest
-from agents4geosx.tools.preproc_tools import convert_units, expand_parameters
+from pathlib import Path
+from agents4geosx.tools.preproc_tools import (
+    convert_units, expand_parameters, resolve_includes, format_xml,
+)
 from agents4geosx.tools.xml_tools import create_document, add_element
 
 
@@ -106,4 +109,106 @@ class TestExpandParameters:
 
     def test_invalid_doc_id(self):
         result = expand_parameters("nonexistent")
+        assert "error" in result
+
+
+class TestResolveIncludes:
+    def test_no_includes(self, schema):
+        doc = create_document(template="single_phase_flow")
+        doc_id = doc["doc_id"]
+        result = resolve_includes(doc_id)
+        assert result["files_merged"] == []
+        assert result["elements_added"] == 0
+
+    def test_invalid_doc_id(self):
+        result = resolve_includes("nonexistent")
+        assert "error" in result
+
+    def test_include_with_missing_file(self, schema):
+        doc = create_document()
+        doc_id = doc["doc_id"]
+        add_element(doc_id, "Included", "File", "",
+                    {"name": "/tmp/nonexistent_geos_test.xml"})
+        result = resolve_includes(doc_id)
+        assert len(result.get("errors", [])) > 0
+
+    def test_include_merges_file(self, schema, tmp_output):
+        include_path = tmp_output / "boxes.xml"
+        include_path.write_text(
+            '<?xml version="1.0"?>\n'
+            '<Problem>\n'
+            '  <Geometry>\n'
+            '    <Box name="source" xMin="{ -0.01, -0.01, -0.01 }" '
+            'xMax="{ 10.01, 10.01, 10.01 }"/>\n'
+            '  </Geometry>\n'
+            '</Problem>\n'
+        )
+        # Use a template and add a Geometry section so the merge target exists
+        doc = create_document(template="single_phase_flow")
+        doc_id = doc["doc_id"]
+        # Add a Geometry section with an existing box (merge will add "source")
+        add_element(doc_id, "Geometry", "Box", "all",
+                    {"xMin": "{ -1, -1, -1 }", "xMax": "{ 101, 101, 101 }"})
+        add_element(doc_id, "Included", "File", "",
+                    {"name": str(include_path)})
+        result = resolve_includes(doc_id)
+        assert str(include_path) in result["files_merged"]
+        assert result["elements_added"] >= 1
+
+
+class TestFormatXml:
+    def test_basic_formatting(self, tmp_output):
+        input_path = tmp_output / "messy.xml"
+        output_path = tmp_output / "clean.xml"
+        input_path.write_text(
+            '<?xml version="1.0"?>\n'
+            '<Problem><Solvers>'
+            '<SinglePhaseFVM name="flow" targetRegions="{Domain}"/>'
+            '</Solvers></Problem>\n'
+        )
+        result = format_xml(str(input_path), str(output_path))
+        assert result["output"] == str(output_path)
+        content = output_path.read_text()
+        assert "  <Solvers" in content
+        assert "{ Domain }" in content
+
+    def test_overwrite_input(self, tmp_output):
+        input_path = tmp_output / "sim.xml"
+        input_path.write_text(
+            '<?xml version="1.0"?>\n'
+            '<Problem><Mesh/></Problem>\n'
+        )
+        result = format_xml(str(input_path))
+        assert result["output"] == str(input_path)
+
+    def test_comma_spacing(self, tmp_output):
+        input_path = tmp_output / "commas.xml"
+        output_path = tmp_output / "commas_out.xml"
+        input_path.write_text(
+            '<?xml version="1.0"?>\n'
+            '<Problem><Geometry>'
+            '<Box name="all" xMin="{-1,-1,-1}" xMax="{101,101,101}"/>'
+            '</Geometry></Problem>\n'
+        )
+        result = format_xml(str(input_path), str(output_path))
+        content = output_path.read_text()
+        assert "{ -1, -1, -1 }" in content
+        assert "{ 101, 101, 101 }" in content
+
+    def test_protected_expression_preserved(self, tmp_output):
+        input_path = tmp_output / "symbolic.xml"
+        output_path = tmp_output / "symbolic_out.xml"
+        input_path.write_text(
+            '<?xml version="1.0"?>\n'
+            '<Problem><Functions>'
+            '<SymbolicFunction name="f1" expression="x^2 + y^2"/>'
+            '</Functions></Problem>\n'
+        )
+        result = format_xml(str(input_path), str(output_path))
+        content = output_path.read_text()
+        assert 'expression="x^2 + y^2"' in content
+        assert result["protected_expressions_preserved"] >= 1
+
+    def test_nonexistent_file(self):
+        result = format_xml("/nonexistent/path.xml")
         assert "error" in result
