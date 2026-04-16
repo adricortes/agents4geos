@@ -182,3 +182,215 @@ def expand_parameters(doc_id: str) -> dict:
         "unresolved": sorted(unresolved),
         "details": details,
     }
+
+
+# ---------------------------------------------------------------------------
+# resolve_includes
+# ---------------------------------------------------------------------------
+
+@mcp.tool
+def resolve_includes(doc_id: str) -> dict:
+    """Merge <Included> file blocks into the document.
+
+    Reads File elements from the <Included> section, parses each referenced
+    XML file, and merges its content into the document. The <Included> block
+    is replaced with an XML comment listing merged files for provenance.
+
+    Args:
+        doc_id: Document ID from create_document or load_xml
+    """
+    from pathlib import Path
+    from lxml import etree
+    from agents4geosx.tools.xml_tools import _store
+    from agents4geosx.config import get_schema
+    from agents4geosx.knowledge.preprocessing_rules import INCLUDE_RULES
+
+    doc = _store.get(doc_id)
+    if doc is None:
+        return {"error": f"Document '{doc_id}' not found"}
+
+    include_sections = [
+        s for s in doc.root.children
+        if s.schema_element.name == "Included"
+    ]
+    if not include_sections:
+        return {"files_merged": [], "elements_added": 0, "comment": ""}
+
+    schema = get_schema()
+    insert_only = set(INCLUDE_RULES["insert_only_elements"])
+    files_merged: list[str] = []
+    elements_added = 0
+    errors: list[str] = []
+
+    for inc_section in include_sections:
+        for file_el in inc_section.children:
+            file_path = file_el.attributes.get("name", "")
+            if not file_path:
+                continue
+            try:
+                parser = etree.XMLParser(remove_blank_text=True)
+                tree = etree.parse(file_path, parser)
+                inc_root = tree.getroot()
+                count = _merge_lxml_into_doc(doc.root, inc_root, schema, insert_only)
+                elements_added += count
+                files_merged.append(file_path)
+            except Exception as exc:
+                errors.append(f"Failed to include '{file_path}': {exc}")
+
+    # Replace Included sections with provenance comments
+    for inc_section in include_sections:
+        doc.root.children.remove(inc_section)
+    if files_merged:
+        file_names = ", ".join(Path(f).name for f in files_merged)
+        comment = f"<!-- Included files merged: {file_names} -->"
+        doc.root.comments.append(comment)
+    else:
+        comment = ""
+
+    result: dict = {
+        "files_merged": files_merged,
+        "elements_added": elements_added,
+        "comment": comment,
+    }
+    if errors:
+        result["errors"] = errors
+    return result
+
+
+def _merge_lxml_into_doc(doc_root, lxml_root, schema, insert_only: set) -> int:
+    """Merge elements from an lxml tree into the DocumentState tree."""
+    from geos_tui.xml.state import ElementState
+
+    count = 0
+    for lxml_section in lxml_root:
+        if not isinstance(lxml_section.tag, str):
+            continue
+        section_name = lxml_section.tag
+
+        target_section = None
+        for s in doc_root.children:
+            if s.schema_element.name == section_name:
+                target_section = s
+                break
+        if target_section is None:
+            continue
+
+        for lxml_el in lxml_section:
+            if not isinstance(lxml_el.tag, str):
+                continue
+            el_type = lxml_el.tag
+            el_name = lxml_el.get("name", "")
+
+            existing = None
+            if el_name and el_type not in insert_only:
+                for child in target_section.children:
+                    if (child.schema_element.name == el_type and
+                            child.attributes.get("name") == el_name):
+                        existing = child
+                        break
+
+            if existing is not None:
+                for attr_name, attr_value in lxml_el.attrib.items():
+                    existing.attributes[attr_name] = attr_value
+            else:
+                schema_el = schema.elements.get(el_type)
+                if schema_el is None:
+                    continue
+                new_el = ElementState(
+                    schema_element=schema_el,
+                    attributes=dict(lxml_el.attrib),
+                )
+                target_section.children.append(new_el)
+                count += 1
+
+    return count
+
+
+# ---------------------------------------------------------------------------
+# format_xml
+# ---------------------------------------------------------------------------
+
+@mcp.tool
+def format_xml(input_path: str, output_path: str = "") -> dict:
+    """Format a GEOS XML file to match canonical geos-xml-tools style.
+
+    Applies 2-space indentation, attribute value normalization (comma and
+    brace spacing), and preserves protected expressions (SymbolicFunction,
+    CompositeFunction).
+
+    Args:
+        input_path: Path to the XML file to format
+        output_path: Path to write formatted output (empty = overwrite input)
+    """
+    from pathlib import Path
+    from lxml import etree
+    from agents4geosx.knowledge.formatting_conventions import (
+        DEFAULT_FORMAT,
+        ATTRIBUTE_FORMATTING,
+        PROTECTED_EXPRESSIONS,
+    )
+
+    if not Path(input_path).exists():
+        return {"error": f"File not found: {input_path}"}
+
+    try:
+        parser = etree.XMLParser(remove_blank_text=True)
+        tree = etree.parse(input_path, parser)
+        root = tree.getroot()
+    except Exception as exc:
+        return {"error": f"Failed to parse XML: {exc}"}
+
+    protected_set = {(p["element"], p["attribute"]) for p in PROTECTED_EXPRESSIONS}
+    protected_count = _normalize_attributes(root, ATTRIBUTE_FORMATTING, protected_set)
+
+    indent_str = " " * DEFAULT_FORMAT["indent"]
+    _indent_tree(root, level=0, indent_str=indent_str)
+
+    out = output_path if output_path else input_path
+    tree.write(out, xml_declaration=True, encoding="utf-8", pretty_print=False)
+    content = Path(out).read_bytes().decode("utf-8")
+    Path(out).write_text(content)
+
+    return {
+        "input": input_path,
+        "output": out,
+        "format_applied": DEFAULT_FORMAT,
+        "protected_expressions_preserved": protected_count,
+    }
+
+
+def _normalize_attributes(el, formatting: dict, protected_set: set, depth: int = 0) -> int:
+    """Normalize attribute values and protect special expressions."""
+    protected_count = 0
+    tag = el.tag if isinstance(el.tag, str) else ""
+
+    for attr_name in list(el.attrib.keys()):
+        if (tag, attr_name) in protected_set:
+            protected_count += 1
+            continue
+        value = el.get(attr_name)
+        for rule_name in ("comma_spacing", "brace_opening", "brace_closing",
+                          "whitespace_consolidation"):
+            rule = formatting[rule_name]
+            value = re.sub(rule["pattern"], rule["replacement"], value)
+        el.set(attr_name, value)
+
+    for child in el:
+        protected_count += _normalize_attributes(child, formatting, protected_set, depth + 1)
+    return protected_count
+
+
+def _indent_tree(elem, level: int = 0, indent_str: str = "  ") -> None:
+    """Add indentation whitespace to an lxml element tree."""
+    indent = "\n" + indent_str * level
+    child_indent = "\n" + indent_str * (level + 1)
+
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = child_indent
+        for i, child in enumerate(elem):
+            _indent_tree(child, level + 1, indent_str)
+            if not child.tail or not child.tail.strip():
+                child.tail = child_indent if i < len(elem) - 1 else indent
+    if not elem.tail or not elem.tail.strip():
+        elem.tail = indent if level > 0 else "\n"
