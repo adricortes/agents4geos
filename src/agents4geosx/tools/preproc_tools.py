@@ -15,6 +15,7 @@ from agents4geosx.knowledge.unit_conventions import (
     BRACKET_NOTATION_REGEX,
     validate_unit_expression,
 )
+from agents4geosx.knowledge.preprocessing_rules import PARAMETER_RULES
 
 
 def _build_unit_scale_map() -> dict[str, float]:
@@ -100,4 +101,84 @@ def convert_units(expression: str) -> dict:
         "si_value": si_value,
         "units_found": validation["units_found"],
         "valid": True,
+    }
+
+
+@mcp.tool
+def expand_parameters(doc_id: str) -> dict:
+    """Expand $Name$ parameter patterns in all document attributes.
+
+    Reads parameter values from the <Parameters> section and substitutes
+    them into all attribute values throughout the document.
+
+    Args:
+        doc_id: Document ID from create_document or load_xml
+    """
+    from agents4geosx.tools.xml_tools import _store
+
+    doc = _store.get(doc_id)
+    if doc is None:
+        return {"error": f"Document '{doc_id}' not found"}
+
+    # Build parameter map from <Parameters> section
+    param_map: dict[str, str] = {}
+    for section in doc.root.children:
+        if section.schema_element.name == "Parameters":
+            for param in section.children:
+                pname = param.attributes.get("name", "")
+                pvalue = param.attributes.get("value", "")
+                if pname:
+                    param_map[pname] = pvalue
+
+    regex = re.compile(PARAMETER_RULES["regex"])
+    max_nesting = PARAMETER_RULES["max_nesting"]
+    substitutions = 0
+    unresolved: set[str] = set()
+    details: list[dict] = []
+
+    def _expand_attrs(el, path: str) -> None:
+        nonlocal substitutions
+        el_name = el.schema_element.name if hasattr(el, "schema_element") else "?"
+        current = f"{path}/{el_name}" if path else el_name
+
+        for attr_name in list(el.attributes.keys()):
+            attr_value = el.attributes[attr_name]
+            if "$" not in attr_value:
+                continue
+            original = attr_value
+            value = attr_value
+            iterations = 0
+            while "$" in value and iterations < max_nesting:
+                def _replace(m: re.Match) -> str:
+                    name = m.group(1)
+                    if name in param_map:
+                        return param_map[name]
+                    if name:
+                        unresolved.add(name)
+                    return m.group(0)
+                new_value = regex.sub(_replace, value)
+                if new_value == value:
+                    break
+                value = new_value
+                iterations += 1
+
+            if value != original:
+                el.attributes[attr_name] = value
+                substitutions += 1
+                details.append({
+                    "path": f"{current}/@{attr_name}",
+                    "before": original,
+                    "after": value,
+                })
+
+        for child in el.children:
+            _expand_attrs(child, current)
+
+    _expand_attrs(doc.root, "")
+
+    return {
+        "parameters_found": param_map,
+        "substitutions_made": substitutions,
+        "unresolved": sorted(unresolved),
+        "details": details,
     }
