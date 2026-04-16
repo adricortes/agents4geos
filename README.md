@@ -78,7 +78,7 @@ Agents ─── 11 slash-command agents (Tier 1-3 model routing)
              │  orchestrator + schema, edit, validate, fluids,
              │  mesh, relperm, inspect, run, postprocess, curate-errors
              │
-Tools ──── 48 MCP tools in 5 groups (FastMCP server)
+Tools ──── 52 MCP tools in 6 groups (FastMCP server)
              │
 Knowledge ─ Domain patterns from 200+ GEOS input files
 ```
@@ -92,6 +92,7 @@ Knowledge ─ Domain patterns from 200+ GEOS input files
 | **Mesh** | 8 | PyVista | Create/load meshes, statistics, screenshots, XML generation |
 | **XML Assembly & Validation** | 14 | geos-tui + xmllint | Create/load/edit/save documents, validate, templates |
 | **Post-Processing** | 9 | PyVista + pyResToolbox | VTK analysis, field viz, Darcy velocity, material balance |
+| **Preprocessing** | 4 | Knowledge modules | Unit conversion, parameter expansion, include resolution, XML formatting |
 
 For the full tool inventory and agent-tool mappings, see [AGENTS.md §4](AGENTS.md#4-tool-inventory).
 
@@ -226,12 +227,13 @@ agents4geosx/
 ├── src/agents4geosx/
 │   ├── server.py              # FastMCP server entry point
 │   ├── config.py              # Schema path resolution
-│   ├── tools/                 # 5 tool modules (48 tools total)
+│   ├── tools/                 # 6 tool modules (52 tools total)
 │   │   ├── schema_tools.py    # Schema introspection (7)
 │   │   ├── fluid_tools.py     # Fluid PVT + constitutive (10)
 │   │   ├── mesh_tools.py      # Mesh creation + viz (8)
 │   │   ├── xml_tools.py       # XML assembly + validation (14)
-│   │   └── postproc_tools.py  # Post-processing (9)
+│   │   ├── postproc_tools.py  # Post-processing (9)
+│   │   └── preproc_tools.py   # Preprocessing (4)
 │   ├── state/
 │   │   └── documents.py       # In-memory DocumentStore (doc_id → DocumentState)
 │   └── knowledge/             # Domain knowledge from GEOS inputFiles audit

@@ -128,7 +128,7 @@ Three tiers based on cognitive complexity:
 
 ## 4. Tool Inventory
 
-47 MCP tools + `health_check`, grouped by domain.
+51 MCP tools + `health_check`, grouped by domain.
 
 ### Schema & Introspection (7 tools)
 
@@ -207,6 +207,15 @@ Three tiers based on cognitive complexity:
 |------|---------|---------|
 | `health_check` | Server status | any |
 | `sanity_check` | Physics heuristics + structural checks | validate, edit, geos |
+
+### Preprocessing (4 tools)
+
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `convert_units` | Parse GEOS bracket notation, convert to SI | fluids, geos, edit |
+| `expand_parameters` | Resolve $Name$ patterns from Parameters section | edit, inspect, geos |
+| `resolve_includes` | Merge `<Included>` file blocks into document | edit, inspect, validate |
+| `format_xml` | Format XML to canonical geos-xml-tools style | edit, geos |
 
 ---
 
