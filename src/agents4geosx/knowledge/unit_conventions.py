@@ -58,6 +58,7 @@ UNIT_DEFINITIONS: dict[str, dict] = {
     "poise":      {"value": 0.1,                "alt": ["P"],                    "usePrefix": True},
     "barrel":     {"value": 0.1589873,          "alt": ["bbl", "barrels"],       "usePrefix": True},
     "horsepower": {"value": 745.7,              "alt": ["hp", "horsepowers"],    "usePrefix": True},
+    "darcy":      {"value": 9.869233e-13,       "alt": ["D"],                    "usePrefix": True},
 }
 
 BRACKET_NOTATION_REGEX = r"([0-9]*?\.?[0-9]+(?:[eE][-+]?[0-9]*?)?)\ *?\[([-+.*/()a-zA-Z0-9]*)\]"

@@ -18,6 +18,7 @@ def register_all_tools() -> None:
     import agents4geosx.tools.mesh_tools    # noqa: F401
     import agents4geosx.tools.xml_tools     # noqa: F401
     import agents4geosx.tools.postproc_tools  # noqa: F401
+    import agents4geosx.tools.preproc_tools   # noqa: F401
 
 
 # Register tools at import time so they're available regardless of entry point
