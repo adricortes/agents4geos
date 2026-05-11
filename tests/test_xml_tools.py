@@ -4,7 +4,7 @@ from pathlib import Path
 
 import json
 
-from agents4geosx.tools.xml_tools import (
+from agents4geos.tools.xml_tools import (
     create_document, add_element, update_element, remove_element,
     add_child, load_xml, save_xml, preview_xml,
     validate_cross_references, log_runtime_error,

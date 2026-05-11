@@ -7,7 +7,7 @@ from geos_tui.schema.model import SchemaModel
 from geos_tui.schema.cache import SchemaCache
 
 SCHEMA_PATH = Path(__file__).resolve().parents[1] / ".." / ".." / "geos-tui" / "geos" / "build" / "schema.xsd"
-CACHE_PATH = Path(__file__).resolve().parents[1] / "src" / "agents4geosx" / ".cache" / "schema.json"
+CACHE_PATH = Path(__file__).resolve().parents[1] / "src" / "agents4geos" / ".cache" / "schema.json"
 
 @pytest.fixture(scope="session")
 def schema() -> SchemaModel:

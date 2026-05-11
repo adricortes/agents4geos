@@ -1,6 +1,6 @@
 """Tests for fluid & constitutive tools."""
 
-from agents4geosx.tools.fluid_tools import (
+from agents4geos.tools.fluid_tools import (
     compute_gas_properties, compute_oil_properties, compute_brine_properties,
     generate_pvt_table, generate_rel_perm, generate_cap_pressure,
     recommend_fluid_model,

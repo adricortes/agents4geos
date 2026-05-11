@@ -10,15 +10,15 @@ from pathlib import Path
 
 from lxml import etree
 
-from agents4geosx.config import get_schema, ServerConfig
-from agents4geosx.server import mcp
-from agents4geosx.state.documents import DocumentStore
+from agents4geos.config import get_schema, ServerConfig
+from agents4geos.server import mcp
+from agents4geos.state.documents import DocumentStore
 from geos_tui.xml.reader import XMLReader
 from geos_tui.xml.writer import XMLWriter
 from geos_tui.xml.state import DocumentState, ElementState
 from geos_tui.domain.templates import build_template_state, TEMPLATES
-from agents4geosx.knowledge.cross_refs import ATTRIBUTE_REFERENCES
-from agents4geosx.knowledge.sanity_rules import run_sanity_checks
+from agents4geos.knowledge.cross_refs import ATTRIBUTE_REFERENCES
+from agents4geos.knowledge.sanity_rules import run_sanity_checks
 
 _store = DocumentStore()
 
@@ -136,7 +136,7 @@ def _check_refs(el: ElementState, path: str, named: dict[str, set[str]], errors:
 
 def _check_nesting_recursive(el, errors: list, parent_type: str = "") -> None:
     """Recursively check nesting constraints."""
-    from agents4geosx.knowledge.cross_refs import check_nesting
+    from agents4geos.knowledge.cross_refs import check_nesting
     el_type = el.schema_element.name if hasattr(el, "schema_element") else ""
     if parent_type and el_type:
         result = check_nesting(parent_type, el_type)
@@ -508,7 +508,7 @@ def validate_cross_references(doc_id: str) -> dict:
     _check_refs(doc.root, "", named, errors)
 
     # Nesting constraint checks (from cross_refs knowledge module)
-    from agents4geosx.knowledge.cross_refs import check_nesting
+    from agents4geos.knowledge.cross_refs import check_nesting
     _check_nesting_recursive(doc.root, errors)
 
     return {"valid": len(errors) == 0, "errors": errors}

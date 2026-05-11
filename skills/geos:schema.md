@@ -3,10 +3,10 @@ name: geos:schema
 description: Query the GEOS XSD schema — available elements, attributes, types, cross-references.
 ---
 
-Answer schema questions using ONLY the `agents4geosx` MCP tools below. Do NOT use Bash, grep,
+Answer schema questions using ONLY the `agents4geos` MCP tools below. Do NOT use Bash, grep,
 or read the XSD file directly. The MCP tools parse the schema correctly and apply v1 scope filtering.
 
-## MANDATORY: Use these MCP tools (server: agents4geosx)
+## MANDATORY: Use these MCP tools (server: agents4geos)
 
 For "what solvers/elements are available?":
 → Call `list_elements` with section="Solvers" (or "Constitutive", "Mesh", etc.) and scope="v1"

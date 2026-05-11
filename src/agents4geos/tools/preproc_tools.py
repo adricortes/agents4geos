@@ -8,14 +8,14 @@ from __future__ import annotations
 
 import re
 
-from agents4geosx.server import mcp
-from agents4geosx.knowledge.unit_conventions import (
+from agents4geos.server import mcp
+from agents4geos.knowledge.unit_conventions import (
     UNIT_DEFINITIONS,
     SI_PREFIXES,
     BRACKET_NOTATION_REGEX,
     validate_unit_expression,
 )
-from agents4geosx.knowledge.preprocessing_rules import PARAMETER_RULES
+from agents4geos.knowledge.preprocessing_rules import PARAMETER_RULES
 
 
 def _build_unit_scale_map() -> dict[str, float]:
@@ -114,7 +114,7 @@ def expand_parameters(doc_id: str) -> dict:
     Args:
         doc_id: Document ID from create_document or load_xml
     """
-    from agents4geosx.tools.xml_tools import _store
+    from agents4geos.tools.xml_tools import _store
 
     doc = _store.get(doc_id)
     if doc is None:
@@ -201,9 +201,9 @@ def resolve_includes(doc_id: str) -> dict:
     """
     from pathlib import Path
     from lxml import etree
-    from agents4geosx.tools.xml_tools import _store
-    from agents4geosx.config import get_schema
-    from agents4geosx.knowledge.preprocessing_rules import INCLUDE_RULES
+    from agents4geos.tools.xml_tools import _store
+    from agents4geos.config import get_schema
+    from agents4geos.knowledge.preprocessing_rules import INCLUDE_RULES
 
     doc = _store.get(doc_id)
     if doc is None:
@@ -331,7 +331,7 @@ def format_xml(input_path: str, output_path: str = "") -> dict:
     """
     from pathlib import Path
     from lxml import etree
-    from agents4geosx.knowledge.formatting_conventions import (
+    from agents4geos.knowledge.formatting_conventions import (
         DEFAULT_FORMAT,
         ATTRIBUTE_FORMATTING,
         PROTECTED_EXPRESSIONS,

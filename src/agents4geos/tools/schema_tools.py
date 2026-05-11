@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from agents4geosx.config import get_schema
-from agents4geosx.server import mcp
+from agents4geos.config import get_schema
+from agents4geos.server import mcp
 from geos_tui.domain.scope import filter_elements_for_section
 from geos_tui.domain.descriptions import get_description
 from geos_tui.domain.curation import get_field_groups
-from agents4geosx.knowledge.field_names import get_field_names
-from agents4geosx.knowledge import cross_refs as xref_module
+from agents4geos.knowledge.field_names import get_field_names
+from agents4geos.knowledge import cross_refs as xref_module
 
 
 @mcp.tool

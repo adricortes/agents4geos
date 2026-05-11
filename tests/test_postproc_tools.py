@@ -3,10 +3,10 @@
 import numpy as np
 from pathlib import Path
 
-from agents4geosx.tools.postproc_tools import (
+from agents4geos.tools.postproc_tools import (
     read_vtk_output, extract_field, sanity_check,
 )
-from agents4geosx.tools.xml_tools import create_document
+from agents4geos.tools.xml_tools import create_document
 
 
 def _create_test_vtk(tmp_path: Path) -> Path:

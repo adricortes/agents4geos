@@ -1,7 +1,7 @@
 """Tests for unit conventions knowledge module."""
 import re
 import pytest
-from agents4geosx.knowledge.unit_conventions import (
+from agents4geos.knowledge.unit_conventions import (
     UNIT_DEFINITIONS,
     SI_PREFIXES,
     PYRESTOOLBOX_MAPPING,

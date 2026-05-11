@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from agents4geosx.server import mcp
-from agents4geosx.knowledge.fluid_models import recommend_model
+from agents4geos.server import mcp
+from agents4geos.knowledge.fluid_models import recommend_model
 
 
 @mcp.tool

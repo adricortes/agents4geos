@@ -3,7 +3,7 @@ name: geos:fluids
 description: Compute fluid PVT properties for GEOS simulations (all SI units).
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools. All inputs and outputs are in SI units.
+CRITICAL: Use ONLY the `agents4geos` MCP tools. All inputs and outputs are in SI units.
 
 ## Tools
 - `compute_gas_properties(pressure_Pa, temperature_K, specific_gravity)` — Z, density, viscosity, Bg, Cg

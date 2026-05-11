@@ -6,8 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
-from agents4geosx.server import mcp
-from agents4geosx.knowledge.sanity_rules import run_sanity_checks, check_document_structure
+from agents4geos.server import mcp
+from agents4geos.knowledge.sanity_rules import run_sanity_checks, check_document_structure
 
 
 @mcp.tool
@@ -227,7 +227,7 @@ def compute_well_performance(
 @mcp.tool
 def sanity_check(doc_id: str) -> dict:
     """Run physics sanity checks on a document's parameters."""
-    from agents4geosx.tools.xml_tools import _store
+    from agents4geos.tools.xml_tools import _store
     doc = _store.get(doc_id)
     if doc is None:
         return {"error": f"Document '{doc_id}' not found"}
@@ -239,8 +239,8 @@ def sanity_check(doc_id: str) -> dict:
     checks.extend(structural)
 
     # Unit expression validation (from unit_conventions knowledge module)
-    from agents4geosx.knowledge.unit_conventions import validate_unit_expression
-    from agents4geosx.knowledge.preprocessing_rules import SPECIAL_CHARACTERS
+    from agents4geos.knowledge.unit_conventions import validate_unit_expression
+    from agents4geos.knowledge.preprocessing_rules import SPECIAL_CHARACTERS
     import re
     for attr_name, attr_value in all_attrs.items():
         # Check bracket notation uses valid units

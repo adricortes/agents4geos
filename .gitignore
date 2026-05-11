@@ -3,5 +3,5 @@ __pycache__/
 .venv/
 *.egg-info/
 .pytest_cache/
-src/agents4geosx/.cache/
+src/agents4geos/.cache/
 knowledge/runtime_errors.jsonl

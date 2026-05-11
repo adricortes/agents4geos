@@ -1,7 +1,7 @@
 """Tests for formatting conventions knowledge module."""
 import re
 import pytest
-from agents4geosx.knowledge.formatting_conventions import (
+from agents4geos.knowledge.formatting_conventions import (
     DEFAULT_FORMAT,
     ATTRIBUTE_FORMATTING,
     PROTECTED_EXPRESSIONS,

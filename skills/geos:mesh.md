@@ -3,7 +3,7 @@ name: geos:mesh
 description: Create, visualize, or analyze meshes for GEOS simulations.
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools.
+CRITICAL: Use ONLY the `agents4geos` MCP tools.
 
 ## Tools
 - `create_structured_mesh(nx, ny, nz, dx, dy, dz)` — saves VTK file
