@@ -11,7 +11,7 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "agents4geosx"
+name = "agents4geos"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

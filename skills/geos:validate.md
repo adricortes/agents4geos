@@ -3,7 +3,7 @@ name: geos:validate
 description: Validate a GEOS XML file — schema validation, cross-reference checks, and physics sanity.
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools. NEVER run xmllint manually via Bash.
+CRITICAL: Use ONLY the `agents4geos` MCP tools. NEVER run xmllint manually via Bash.
 
 ## Validation Steps (run ALL three)
 

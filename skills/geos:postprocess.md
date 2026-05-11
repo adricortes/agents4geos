@@ -3,7 +3,7 @@ name: geos:postprocess
 description: Analyze GEOS simulation output — VTK fields, time evolution, material balance.
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools.
+CRITICAL: Use ONLY the `agents4geos` MCP tools.
 
 ## Tools
 - `read_vtk_output(path)` — inspect arrays, scalar ranges

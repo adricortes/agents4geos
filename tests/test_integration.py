@@ -1,13 +1,13 @@
 """End-to-end integration tests: NL → XML → validate."""
 
-from agents4geosx.tools.fluid_tools import recommend_fluid_model
-from agents4geosx.tools.schema_tools import describe_element, lookup_field_names
-from agents4geosx.tools.mesh_tools import generate_internal_mesh_xml, define_geometry_box
-from agents4geosx.tools.xml_tools import (
+from agents4geos.tools.fluid_tools import recommend_fluid_model
+from agents4geos.tools.schema_tools import describe_element, lookup_field_names
+from agents4geos.tools.mesh_tools import generate_internal_mesh_xml, define_geometry_box
+from agents4geos.tools.xml_tools import (
     create_document, add_element, add_child, save_xml,
     validate_cross_references, preview_xml, load_xml,
 )
-from agents4geosx.tools.postproc_tools import sanity_check
+from agents4geos.tools.postproc_tools import sanity_check
 
 
 def test_single_phase_flow_e2e(schema, tmp_output):

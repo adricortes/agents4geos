@@ -3,7 +3,7 @@ name: geos:run
 description: Run a GEOS simulation and analyze the output.
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools for post-processing. Use Bash ONLY for the GEOS run itself.
+CRITICAL: Use ONLY the `agents4geos` MCP tools for post-processing. Use Bash ONLY for the GEOS run itself.
 
 ## Before Running
 

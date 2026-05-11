@@ -1,6 +1,6 @@
 """Tests for DocumentStore and schema loader."""
-from agents4geosx.state.documents import DocumentStore
-from agents4geosx.config import get_schema
+from agents4geos.state.documents import DocumentStore
+from agents4geos.config import get_schema
 from geos_tui.xml.state import DocumentState, ElementState
 
 

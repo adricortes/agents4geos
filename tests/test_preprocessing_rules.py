@@ -1,7 +1,7 @@
 """Tests for preprocessing rules knowledge module."""
 import re
 import pytest
-from agents4geosx.knowledge.preprocessing_rules import (
+from agents4geos.knowledge.preprocessing_rules import (
     PROCESSING_PIPELINE,
     PARAMETER_RULES,
     SYMBOLIC_MATH_RULES,

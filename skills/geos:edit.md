@@ -3,7 +3,7 @@ name: geos:edit
 description: Edit an existing GEOS XML file — load, modify elements, validate, and save.
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools. NEVER edit XML files directly with Edit/Write tools.
+CRITICAL: Use ONLY the `agents4geos` MCP tools. NEVER edit XML files directly with Edit/Write tools.
 
 ## Workflow
 

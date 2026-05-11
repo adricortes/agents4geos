@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from agents4geosx.tools.mesh_tools import (
+from agents4geos.tools.mesh_tools import (
     create_structured_mesh, load_mesh, mesh_statistics,
     generate_internal_mesh_xml, define_geometry_box, suggest_mesh_resolution,
 )

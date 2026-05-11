@@ -3,7 +3,7 @@ name: geos:inspect
 description: Describe what a GEOS XML file contains — solvers, mesh, materials, BCs.
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools.
+CRITICAL: Use ONLY the `agents4geos` MCP tools.
 
 ## Workflow
 

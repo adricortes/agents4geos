@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from agents4geosx.server import mcp
+from agents4geos.server import mcp
 
 
 @mcp.tool

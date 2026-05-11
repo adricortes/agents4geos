@@ -1,6 +1,6 @@
 """Tests for schema introspection tools."""
 
-from agents4geosx.tools.schema_tools import (
+from agents4geos.tools.schema_tools import (
     list_sections, list_elements, describe_element, list_attributes,
     get_type_info, lookup_field_names, get_cross_references,
 )

@@ -3,7 +3,7 @@ name: geos:relperm
 description: Generate relative permeability and capillary pressure curves.
 ---
 
-CRITICAL: Use ONLY the `agents4geosx` MCP tools.
+CRITICAL: Use ONLY the `agents4geos` MCP tools.
 
 ## Tools
 - `generate_rel_perm(model, swc, sorg, exponents, n_rows)` — Brooks-Corey, VanGenuchten, or LET

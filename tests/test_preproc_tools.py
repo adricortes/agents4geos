@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import pytest
 from pathlib import Path
-from agents4geosx.tools.preproc_tools import (
+from agents4geos.tools.preproc_tools import (
     convert_units, expand_parameters, resolve_includes, format_xml,
 )
-from agents4geosx.tools.xml_tools import create_document, add_element
+from agents4geos.tools.xml_tools import create_document, add_element
 
 
 class TestConvertUnits:
@@ -158,7 +158,7 @@ class TestResolveIncludes:
         """Merging an include whose top-level section isn't present in the
         target doc must create the section and insert the elements — not
         silently drop them."""
-        from agents4geosx.tools.xml_tools import _store
+        from agents4geos.tools.xml_tools import _store
 
         include_path = tmp_output / "geom.xml"
         include_path.write_text(

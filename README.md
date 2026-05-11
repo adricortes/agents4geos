@@ -134,8 +134,8 @@ These repositories must be available locally:
 
 ```bash
 cd ~/codes
-git clone git@github.com:adricortes/agents4geosx.git
-cd agents4geosx
+git clone git@github.com:adricortes/agents4geos.git
+cd agents4geos
 uv sync --all-extras
 ```
 
@@ -152,21 +152,21 @@ uv run python -c "import pyvista as pv; print('PyVista OK')"
 Create a separate directory for testing/using the agent:
 
 ```bash
-mkdir -p ~/codes/agents4geosx-workspace
-cd ~/codes/agents4geosx-workspace
+mkdir -p ~/codes/agents4geos-workspace
+cd ~/codes/agents4geos-workspace
 
 # Symlink your GEOS build
 ln -s /path/to/GEOS geos
 
 # Deploy slash commands
 mkdir -p .claude/commands
-cp ~/codes/agents4geosx/skills/*.md .claude/commands/
+cp ~/codes/agents4geos/skills/*.md .claude/commands/
 
 # Register the MCP server
-claude mcp add agents4geosx -- \
+claude mcp add agents4geos -- \
   env GEOS_SCHEMA=$(pwd)/geos/build/schema.xsd \
-  uv run --directory ~/codes/agents4geosx \
-  python -m agents4geosx
+  uv run --directory ~/codes/agents4geos \
+  python -m agents4geos
 ```
 
 ### 4. Auto-approve MCP tools (optional)
@@ -178,7 +178,7 @@ cat > .claude/settings.local.json << 'EOF'
 {
   "permissions": {
     "allow": [
-      "mcp__agents4geosx__*",
+      "mcp__agents4geos__*",
       "Read",
       "Glob",
       "Grep"
@@ -191,7 +191,7 @@ EOF
 ### 5. Start Claude Code
 
 ```bash
-cd ~/codes/agents4geosx-workspace
+cd ~/codes/agents4geos-workspace
 claude
 ```
 
@@ -199,7 +199,7 @@ claude
 
 ```bash
 # On workstation (with internet):
-cd ~/codes/agents4geosx
+cd ~/codes/agents4geos
 uv export --frozen --all-extras > requirements.txt
 
 # Transfer the repo + requirements.txt to the cluster
@@ -214,17 +214,17 @@ uv sync --offline --all-extras
 ### Run tests
 
 ```bash
-cd ~/codes/agents4geosx
+cd ~/codes/agents4geos
 uv run pytest tests/ -v
 ```
 
 ### Project structure
 
 ```
-agents4geosx/
+agents4geos/
 ├── AGENTS.md                  # Agent architecture (taxonomy, tiers, registry, patterns)
 ├── CLAUDE.md                  # Quick reference for Claude Code
-├── src/agents4geosx/
+├── src/agents4geos/
 │   ├── server.py              # FastMCP server entry point
 │   ├── config.py              # Schema path resolution
 │   ├── tools/                 # 6 tool modules (52 tools total)

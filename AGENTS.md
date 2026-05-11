@@ -226,10 +226,10 @@ supplemented by runtime error lessons.
 
 | Module | File | What it encodes | Provenance | Consumed by tools |
 |--------|------|----------------|------------|-------------------|
-| **Field names** | `src/agents4geosx/knowledge/field_names.py` | Solver type → valid BC/IC field names | GEOS inputFiles audit | `lookup_field_names`, `sanity_check` |
-| **Fluid models** | `src/agents4geosx/knowledge/fluid_models.py` | NL keywords → solver + constitutive assembly (6 scenarios) | GEOS inputFiles audit + curated physics defaults | `recommend_fluid_model` |
-| **Cross-references** | `src/agents4geosx/knowledge/cross_refs.py` | Attribute → target section mapping | XSD schema structure | `get_cross_references`, `validate_cross_references` |
-| **Sanity rules** | `src/agents4geosx/knowledge/sanity_rules.py` | Physics heuristics + structural checks | GEOS inputFiles audit + runtime errors | `sanity_check` |
+| **Field names** | `src/agents4geos/knowledge/field_names.py` | Solver type → valid BC/IC field names | GEOS inputFiles audit | `lookup_field_names`, `sanity_check` |
+| **Fluid models** | `src/agents4geos/knowledge/fluid_models.py` | NL keywords → solver + constitutive assembly (6 scenarios) | GEOS inputFiles audit + curated physics defaults | `recommend_fluid_model` |
+| **Cross-references** | `src/agents4geos/knowledge/cross_refs.py` | Attribute → target section mapping | XSD schema structure | `get_cross_references`, `validate_cross_references` |
+| **Sanity rules** | `src/agents4geos/knowledge/sanity_rules.py` | Physics heuristics + structural checks | GEOS inputFiles audit + runtime errors | `sanity_check` |
 | **Lessons learned** | `knowledge/lessons_learned.md` | Runtime error patterns + fixes (prose) | Curated from GEOS runs | `geos:run`, `geos:curate-errors` (read by agent, not tool) |
 
 **Key principle:** Knowledge modules are the single source of truth for domain patterns.
