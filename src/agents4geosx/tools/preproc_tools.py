@@ -273,7 +273,14 @@ def _merge_lxml_into_doc(doc_root, lxml_root, schema, insert_only: set) -> int:
                 target_section = s
                 break
         if target_section is None:
-            continue
+            section_schema = next(
+                (c for c in schema.root.children if c.name == section_name),
+                None,
+            )
+            if section_schema is None:
+                continue
+            target_section = ElementState(schema_element=section_schema)
+            doc_root.children.append(target_section)
 
         for lxml_el in lxml_section:
             if not isinstance(lxml_el.tag, str):

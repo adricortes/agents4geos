@@ -143,10 +143,9 @@ class TestResolveIncludes:
             '  </Geometry>\n'
             '</Problem>\n'
         )
-        # Use a template and add a Geometry section so the merge target exists
+        # Pre-existing Geometry section — merge appends a new box into it
         doc = create_document(template="single_phase_flow")
         doc_id = doc["doc_id"]
-        # Add a Geometry section with an existing box (merge will add "source")
         add_element(doc_id, "Geometry", "Box", "all",
                     {"xMin": "{ -1, -1, -1 }", "xMax": "{ 101, 101, 101 }"})
         add_element(doc_id, "Included", "File", "",
@@ -154,6 +153,43 @@ class TestResolveIncludes:
         result = resolve_includes(doc_id)
         assert str(include_path) in result["files_merged"]
         assert result["elements_added"] >= 1
+
+    def test_include_auto_creates_missing_section(self, schema, tmp_output):
+        """Merging an include whose top-level section isn't present in the
+        target doc must create the section and insert the elements — not
+        silently drop them."""
+        from agents4geosx.tools.xml_tools import _store
+
+        include_path = tmp_output / "geom.xml"
+        include_path.write_text(
+            '<?xml version="1.0"?>\n'
+            '<Problem>\n'
+            '  <Geometry>\n'
+            '    <Box name="left_face" xMin="{ -1, -1, -1 }" '
+            'xMax="{ 1, 1001, 101 }"/>\n'
+            '    <Box name="right_face" xMin="{ 999, -1, -1 }" '
+            'xMax="{ 1001, 1001, 101 }"/>\n'
+            '  </Geometry>\n'
+            '</Problem>\n'
+        )
+        doc = create_document()
+        doc_id = doc["doc_id"]
+        add_element(doc_id, "Included", "File", "",
+                    {"name": str(include_path)})
+
+        result = resolve_includes(doc_id)
+
+        assert result["elements_added"] == 2
+        assert str(include_path) in result["files_merged"]
+
+        state = _store.get(doc_id)
+        geometry_sections = [
+            s for s in state.root.children
+            if s.schema_element.name == "Geometry"
+        ]
+        assert len(geometry_sections) == 1
+        box_names = {c.attributes.get("name") for c in geometry_sections[0].children}
+        assert box_names == {"left_face", "right_face"}
 
 
 class TestFormatXml:
