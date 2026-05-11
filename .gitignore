@@ -5,3 +5,8 @@ __pycache__/
 .pytest_cache/
 src/agents4geos/.cache/
 knowledge/runtime_errors.jsonl
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
