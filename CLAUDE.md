@@ -1,4 +1,4 @@
-# CLAUDE.md — Agents4GEOSX
+# CLAUDE.md — Agents4GEOS
 
 ## Overview
 MCP server providing 52 tools for natural-language GEOS XML input creation.

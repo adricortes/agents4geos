@@ -113,7 +113,7 @@ def test_validate_cross_references_broken(schema):
 def test_log_runtime_error(tmp_path, monkeypatch):
     """log_runtime_error extracts solver/constitutive from doc and appends JSONL."""
     log_file = tmp_path / "runtime_errors.jsonl"
-    monkeypatch.setenv("AGENTS4GEOSX_ERROR_LOG", str(log_file))
+    monkeypatch.setenv("AGENTS4GEOS_ERROR_LOG", str(log_file))
 
     doc = create_document(template="single_phase_flow")
     doc_id = doc["doc_id"]
@@ -141,7 +141,7 @@ def test_log_runtime_error(tmp_path, monkeypatch):
 def test_log_runtime_error_appends(tmp_path, monkeypatch):
     """Multiple calls append separate lines."""
     log_file = tmp_path / "runtime_errors.jsonl"
-    monkeypatch.setenv("AGENTS4GEOSX_ERROR_LOG", str(log_file))
+    monkeypatch.setenv("AGENTS4GEOS_ERROR_LOG", str(log_file))
 
     doc = create_document(template="single_phase_flow")
     doc_id = doc["doc_id"]
@@ -156,6 +156,29 @@ def test_log_runtime_error_appends(tmp_path, monkeypatch):
     assert len(lines) == 2
     assert json.loads(lines[0])["error_summary"] == "first"
     assert json.loads(lines[1])["error_summary"] == "second"
+
+
+def test_log_runtime_error_legacy_env_var(tmp_path, monkeypatch):
+    """Legacy AGENTS4GEOSX_ERROR_LOG still works, emits DeprecationWarning."""
+    import warnings as _warnings
+    from types import SimpleNamespace
+    from agents4geos.tools import xml_tools
+
+    log_file = tmp_path / "legacy.jsonl"
+    monkeypatch.delenv("AGENTS4GEOS_ERROR_LOG", raising=False)
+    monkeypatch.setenv("AGENTS4GEOSX_ERROR_LOG", str(log_file))
+
+    # Stub doc bypasses schema parsing so the env-var branch can be exercised
+    # in environments without a built geos-tui schema.xsd.
+    stub_doc = SimpleNamespace(source_path=None, root=SimpleNamespace(children=[]))
+    doc_id = xml_tools._store.create(stub_doc)
+
+    with _warnings.catch_warnings(record=True) as caught:
+        _warnings.simplefilter("always")
+        log_runtime_error(doc_id=doc_id, geos_error="e", error_summary="s", fix_applied="f")
+
+    assert log_file.exists()
+    assert any(issubclass(w.category, DeprecationWarning) and "AGENTS4GEOSX_ERROR_LOG" in str(w.message) for w in caught)
 
 
 def test_log_runtime_error_invalid_doc():

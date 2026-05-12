@@ -1,8 +1,8 @@
-# Agents4GEOSX
+# Agents4GEOS
 
 A team of specialized AI agents for creating and editing [GEOS](https://github.com/GEOS-DEV/GEOS) simulation input files, built as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) MCP server with slash commands and hooks.
 
-GEOS simulations require complex XML input files — often 200-500 lines of cross-referenced parameters across solvers, constitutive models, mesh, boundary conditions, and outputs. Agents4GEOSX lets you describe your simulation in plain English and a team of agents — each specialized in schema, fluids, meshing, validation, or post-processing — collaborates to produce validated XML, backed by real physics computations and knowledge learned from 200+ official GEOS examples.
+GEOS simulations require complex XML input files — often 200-500 lines of cross-referenced parameters across solvers, constitutive models, mesh, boundary conditions, and outputs. Agents4GEOS lets you describe your simulation in plain English and a team of agents — each specialized in schema, fluids, meshing, validation, or post-processing — collaborates to produce validated XML, backed by real physics computations and knowledge learned from 200+ official GEOS examples.
 
 ## Usage
 
@@ -69,7 +69,7 @@ pressure outlet on the right at 20 MPa, run for 1 year with VTK output monthly
 
 ## Architecture
 
-Agents4GEOSX is a layered system — see [AGENTS.md](AGENTS.md) for the full taxonomy, agent registry, and coordination patterns.
+Agents4GEOS is a layered system — see [AGENTS.md](AGENTS.md) for the full taxonomy, agent registry, and coordination patterns.
 
 ```
 User ──── /geos "create a CO2 injection simulation..."

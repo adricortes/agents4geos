@@ -1,4 +1,4 @@
-"""Shared test fixtures for Agents4GEOSX."""
+"""Shared test fixtures for Agents4GEOS."""
 from __future__ import annotations
 from pathlib import Path
 import pytest

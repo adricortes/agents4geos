@@ -1,13 +1,13 @@
-"""Agents4GEOSX MCP Server — tool definitions and registration."""
+"""Agents4GEOS MCP Server — tool definitions and registration."""
 
 from fastmcp import FastMCP
 
-mcp = FastMCP("Agents4GEOSX")
+mcp = FastMCP("Agents4GEOS")
 
 
 @mcp.tool
 def health_check() -> dict:
-    """Check that the Agents4GEOSX MCP server is running."""
+    """Check that the Agents4GEOS MCP server is running."""
     return {"status": "ok", "version": "0.1.0"}
 
 

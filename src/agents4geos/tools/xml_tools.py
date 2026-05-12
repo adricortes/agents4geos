@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -597,11 +598,21 @@ def log_runtime_error(
         "fix_applied": fix_applied,
     }
 
-    # Append to JSONL log
-    log_path = os.environ.get(
-        "AGENTS4GEOSX_ERROR_LOG",
-        str(Path(__file__).resolve().parent.parent.parent.parent / "knowledge" / "runtime_errors.jsonl"),
-    )
+    # Append to JSONL log. AGENTS4GEOSX_ERROR_LOG is the legacy name from the
+    # pre-rename project; keep accepting it for one release with a deprecation nudge.
+    default_log = str(Path(__file__).resolve().parent.parent.parent.parent / "knowledge" / "runtime_errors.jsonl")
+    log_path = os.environ.get("AGENTS4GEOS_ERROR_LOG")
+    if log_path is None:
+        legacy = os.environ.get("AGENTS4GEOSX_ERROR_LOG")
+        if legacy is not None:
+            warnings.warn(
+                "AGENTS4GEOSX_ERROR_LOG is deprecated; rename to AGENTS4GEOS_ERROR_LOG.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            log_path = legacy
+        else:
+            log_path = default_log
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, "a") as f:
         f.write(json.dumps(entry) + "\n")
