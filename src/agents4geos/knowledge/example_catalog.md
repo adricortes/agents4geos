@@ -40,7 +40,7 @@ the right column.
 | User cue | Category | Detail file |
 |----------|----------|-------------|
 | "single-phase flow", "incompressible water", "pressure-driven flow", "1D column", "3D box of water" | Single-phase flow | [examples/single_phase_flow.md](examples/single_phase_flow.md) |
-| "thermal flow", "heat transport", "non-isothermal water", "geothermal", `isThermal` | Thermal single-phase | _(stub — Phase 1 TODO)_ |
+| "thermal flow", "heat transport", "non-isothermal water", "geothermal gradient", "cold/hot injection", `isThermal` | Thermal single-phase | [examples/thermal_single_phase.md](examples/thermal_single_phase.md) |
 | "CO₂ injection", "CO₂ storage", "sequestration", "Sleipner-like", "Phillips", "Ezrokhi", "supercritical CO₂", SPE 11, SPE 09 / Class 09 | CO₂-brine | [examples/co2_brine.md](examples/co2_brine.md) |
 | "waterflood", "oil + gas + water", "black oil", "depletion drive", "Stone-I", "Stone-II" | Black oil | [examples/black_oil.md](examples/black_oil.md) |
 | "dead oil", "oil + water", "no gas dissolved", "Buckley-Leverett", "Egg model", "SPE 10", "install sanity check" | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) |
@@ -94,8 +94,8 @@ Each entry exposes:
 | CO₂-brine | [examples/co2_brine.md](examples/co2_brine.md) | ✅ 3 entries + decision rule |
 | Black oil | [examples/black_oil.md](examples/black_oil.md) | ✅ 1 entry + 3 siblings |
 | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) | ✅ 4 entries + 7 siblings |
+| Thermal single-phase | [examples/thermal_single_phase.md](examples/thermal_single_phase.md) | ✅ 4 entries + 4 wellbore-geometry siblings |
 | Compositional multiphase (generic) | _none yet_ | ⏳ Phase 1 TODO |
-| Thermal single-phase | _none yet_ | ⏳ Phase 1 TODO |
 | Wells (cross-cut) | _none yet_ | ⏳ Phase 1 TODO |
 | Immiscible | _none yet_ | ⏳ blocked on agents4geos-fot |
 
