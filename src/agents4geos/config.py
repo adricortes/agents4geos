@@ -36,6 +36,17 @@ def get_schema() -> SchemaModel:
     if cache_exists and (not schema_exists or not SchemaCache.is_stale(cache_file, cfg.schema_path)):
         _schema_cache = SchemaCache.load(cache_file)
     else:
+        if not schema_exists:
+            env = os.environ.get("GEOS_SCHEMA")
+            if env:
+                raise FileNotFoundError(
+                    f"GEOS_SCHEMA is set to {env!r} but no file exists there. "
+                    f"Point GEOS_SCHEMA at a valid geos-tui schema.xsd."
+                )
+            raise FileNotFoundError(
+                f"GEOS schema not found at default path {cfg.schema_path}. "
+                f"Set GEOS_SCHEMA to your schema.xsd, or place one at the default location."
+            )
         _schema_cache = SchemaParser(cfg.schema_path).parse()
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         SchemaCache.save(_schema_cache, cache_file)
