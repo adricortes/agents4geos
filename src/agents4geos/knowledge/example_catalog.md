@@ -46,7 +46,7 @@ the right column.
 | "dead oil", "oil + water", "no gas dissolved", "Buckley-Leverett", "Egg model", "SPE 10", "install sanity check" | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) |
 | "compositional", "PR EOS", "EOS-based", "sour gas", "H₂S", "Søreide-Whitson", "lock exchange", "4-component oil-gas" | Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) |
 | "two-phase immiscible", `TwoPhaseImmiscibleFluid` | Immiscible | _(stub — blocked on agents4geos-fot)_ |
-| Any well-centric request — "injector + producer", "multiple wells", "BHP-controlled well" | Cross-cuts categories | _(stub — Phase 1 TODO)_ |
+| Any well-centric question — "BHP vs rate control", "mass-rate injection", "deviated trajectory", "multi-perforation", "surface conditions", "downhole rate", "cross-flow", "injection temperature", "well solver wiring" | Wells (capability reference, cross-cuts physics) | [examples/wells.md](examples/wells.md) — then back to the matching physics file once the physics is identified |
 
 If the user names a *physics* the orchestrator can't reach (poromechanics,
 fractures, wave/seismic, contact, MPM, phase-field, proppant): tell them it's
@@ -73,6 +73,13 @@ the dimensions of variation, a `## Decision rule (stage 2)` block mapping
 user-intent cues to specific entries, the entries themselves, and a sibling
 variants section for known-good alternates that don't need their own entry.
 
+**Format exception**: [`examples/wells.md`](examples/wells.md) documents
+cross-cutting well *capabilities* (control modes, solver wiring, trajectory
+patterns, surface-conditions handling) rather than starter decks. It has no
+entries or ★ ratings — every well-driven deck already lives in its physics
+file. The wells file is consulted when a user question is about *how to
+configure a well*, not which physics to pick.
+
 Each entry exposes:
 
 - **File** — path under `geos/inputFiles/`
@@ -97,7 +104,7 @@ Each entry exposes:
 | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) | ✅ 4 entries + 7 siblings |
 | Thermal single-phase | [examples/thermal_single_phase.md](examples/thermal_single_phase.md) | ✅ 4 entries + 4 wellbore-geometry siblings |
 | Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) | ✅ 4 entries + 6 siblings (incl. Søreide-Whitson sub-family) |
-| Wells (cross-cut) | _none yet_ | ⏳ Phase 1 TODO |
+| Wells (cross-cut capability reference) | [examples/wells.md](examples/wells.md) | ✅ patterns reference (format-exception: no entries/ratings — documents well capabilities and routes back to physics files) |
 | Immiscible | _none yet_ | ⏳ blocked on agents4geos-fot |
 
 Tracked under epic agents4geos-3wl, Phase 1 ticket agents4geos-8el.
