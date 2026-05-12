@@ -30,6 +30,23 @@ REQUIRED_ATTRS_BY_TYPE: dict[str, set[str]] = {
     "TwoPhaseImmiscibleFluid": {"phaseNames"},
 }
 
+# Expected GEOS solver per fluid family. The pairing is fixed by which solver
+# implements which physics: ImmiscibleMultiphaseFlow accepts only
+# TwoPhaseImmiscibleFluid; SinglePhaseFVM accepts the single-phase fluids;
+# CompositionalMultiphaseFVM handles everything else.
+EXPECTED_SOLVER_BY_FLUID: dict[str, str] = {
+    "BlackOilFluid": "CompositionalMultiphaseFVM",
+    "DeadOilFluid": "CompositionalMultiphaseFVM",
+    "CO2BrinePhillipsFluid": "CompositionalMultiphaseFVM",
+    "CO2BrineEzrokhiFluid": "CompositionalMultiphaseFVM",
+    "CO2BrinePhillipsThermalFluid": "CompositionalMultiphaseFVM",
+    "CO2BrineEzrokhiThermalFluid": "CompositionalMultiphaseFVM",
+    "CompositionalMultiphaseFluid": "CompositionalMultiphaseFVM",
+    "TwoPhaseImmiscibleFluid": "ImmiscibleMultiphaseFlow",
+    "CompressibleSinglePhaseFluid": "SinglePhaseFVM",
+    "ThermalCompressibleSinglePhaseFluid": "SinglePhaseFVM",
+}
+
 
 _KNOWN_FLUID_TYPES = set(REQUIRED_ATTRS_BY_TYPE.keys())
 
@@ -64,6 +81,22 @@ def test_every_entry_has_a_known_fluid_type(entry):
     assert fluid["type"] in REQUIRED_ATTRS_BY_TYPE, (
         f"fluid type {fluid['type']!r} not in REQUIRED_ATTRS_BY_TYPE — either add "
         f"it to the test or the entry uses an unknown element"
+    )
+
+
+@pytest.mark.parametrize("entry", FLUID_MODEL_MAP)
+def test_solver_matches_fluid_family(entry):
+    """Each entry's solver must be the canonical solver for its fluid type.
+
+    Regression: prior to this test, the immiscible entry's solver was set to
+    CompositionalMultiphaseFVM (incorrect) without any test catching it.
+    """
+    fluid = _fluid_element(entry)
+    expected = EXPECTED_SOLVER_BY_FLUID[fluid["type"]]
+    assert entry["solver"] == expected, (
+        f"fluid {fluid['type']!r} (entry keywords {entry['keywords']!r}) "
+        f"declares solver {entry['solver']!r} but the canonical solver for this "
+        f"family is {expected!r}"
     )
 
 

@@ -45,7 +45,7 @@ the right column.
 | "waterflood", "oil + gas + water", "black oil", "depletion drive", "Stone-I", "Stone-II" | Black oil | [examples/black_oil.md](examples/black_oil.md) |
 | "dead oil", "oil + water", "no gas dissolved", "Buckley-Leverett", "Egg model", "SPE 10", "install sanity check" | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) |
 | "compositional", "PR EOS", "EOS-based", "sour gas", "H₂S", "Søreide-Whitson", "lock exchange", "4-component oil-gas" | Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) |
-| "two-phase immiscible", `TwoPhaseImmiscibleFluid`, "SPE 10 immiscible", "immiscible Buckley-Leverett" | Immiscible | _(stub — Phase 1 TODO; fluid_models.py wired)_ |
+| "two-phase immiscible", `TwoPhaseImmiscibleFluid`, "SPE 10 immiscible", "immiscible Buckley-Leverett", "no mass transfer", "dedicated immiscible solver" | Immiscible | [examples/immiscible.md](examples/immiscible.md) |
 | Any well-centric question — "BHP vs rate control", "mass-rate injection", "deviated trajectory", "multi-perforation", "surface conditions", "downhole rate", "cross-flow", "injection temperature", "well solver wiring" | Wells (capability reference, cross-cuts physics) | [examples/wells.md](examples/wells.md) — then back to the matching physics file once the physics is identified |
 
 If the user names a *physics* the orchestrator can't reach (poromechanics,
@@ -58,8 +58,10 @@ When the user names a benchmark by name, route directly:
 
 | Benchmark | Category | Specific entry |
 |-----------|----------|----------------|
-| Buckley-Leverett | Dead oil | `buckleyLeverett_base` |
-| SPE 10 (layers 84/85) | Dead oil | `deadOilSpe10Layers84_85_base_{direct,iterative}` |
+| Buckley-Leverett (immiscible — dedicated solver) | Immiscible | `immiscibleTwoPhase_BuckleyLeverett/buckleyLeverett_base` |
+| Buckley-Leverett (CO₂-water proxy via DeadOilFluid) | Dead oil | `buckleyLeverett_base` |
+| SPE 10 (layers 84/85, dead oil) | Dead oil | `deadOilSpe10Layers84_85_base_{direct,iterative}` |
+| SPE 10 layer 84 (immiscible) | Immiscible | `immiscibleTwoPhase_SPE10_layer84_base_{direct,iterative}` |
 | Egg model | Dead oil | `deadOilEgg_base_direct` (or `_iterative`) |
 | SPE Class 09 Pb3 | CO₂-brine | `class09_pb3_drainageOnly_iterative_base` (+ hyst/direct siblings) |
 | SPE 11 case B | CO₂-brine | `spe11b_vti_source_base` (Phillips thermal) |
@@ -105,7 +107,7 @@ Each entry exposes:
 | Thermal single-phase | [examples/thermal_single_phase.md](examples/thermal_single_phase.md) | ✅ 4 entries + 4 wellbore-geometry siblings |
 | Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) | ✅ 4 entries + 6 siblings (incl. Søreide-Whitson sub-family) |
 | Wells (cross-cut capability reference) | [examples/wells.md](examples/wells.md) | ✅ patterns reference (format-exception: no entries/ratings — documents well capabilities and routes back to physics files) |
-| Immiscible | _none yet_ | ⏳ Phase 1 TODO — `fluid_models.py` wiring landed (agents4geos-fot closed); catalog entry pending |
+| Immiscible | [examples/immiscible.md](examples/immiscible.md) | ✅ 4 entries + 4 siblings (dedicated `ImmiscibleMultiphaseFlow` solver; cross-refs dead_oil for the buckleyLeverett name clash) |
 
 Tracked under epic agents4geos-3wl, Phase 1 ticket agents4geos-8el.
 

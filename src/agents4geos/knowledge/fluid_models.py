@@ -371,11 +371,12 @@ FLUID_MODEL_MAP: list[dict] = [
     {
         "keywords": ["immiscible", "two-phase immiscible", "two-phase oil water",
                      "oil water no transfer", "spe10 immiscible"],
-        # NOTE: ImmiscibleMultiphaseFlow is not actually a v0.1 solver — production decks
-        # use CompositionalMultiphaseFVM with TwoPhaseImmiscibleFluid (e.g. the SPE 10
-        # layer 84 and Buckley-Leverett immiscible benchmarks). Keep the solver field
-        # in sync with how the orchestrator actually wires the deck.
-        "solver": "CompositionalMultiphaseFVM",
+        # ImmiscibleMultiphaseFlow is the dedicated solver for TwoPhaseImmiscibleFluid
+        # — verified by reading all 4 immiscible inputFile decks (1D academic, SPE 10
+        # layer 84, Buckley-Leverett, capillary-pressure variant). It is in the schema
+        # but not yet listed in the README v0.1 supported-physics table (tracked in
+        # agents4geos-npm).
+        "solver": "ImmiscibleMultiphaseFlow",
         "material_list": ["fluid", "rock", "relperm"],
         "constitutive_elements": [
             {"type": "TwoPhaseImmiscibleFluid", "name": "fluid", "attrs": {
