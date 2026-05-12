@@ -45,7 +45,7 @@ the right column.
 | "waterflood", "oil + gas + water", "black oil", "depletion drive", "Stone-I", "Stone-II" | Black oil | [examples/black_oil.md](examples/black_oil.md) |
 | "dead oil", "oil + water", "no gas dissolved", "Buckley-Leverett", "Egg model", "SPE 10", "install sanity check" | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) |
 | "compositional", "PR EOS", "EOS-based", "sour gas", "H₂S", "Søreide-Whitson", "lock exchange", "4-component oil-gas" | Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) |
-| "two-phase immiscible", `TwoPhaseImmiscibleFluid` | Immiscible | _(stub — blocked on agents4geos-fot)_ |
+| "two-phase immiscible", `TwoPhaseImmiscibleFluid`, "SPE 10 immiscible", "immiscible Buckley-Leverett" | Immiscible | _(stub — Phase 1 TODO; fluid_models.py wired)_ |
 | Any well-centric question — "BHP vs rate control", "mass-rate injection", "deviated trajectory", "multi-perforation", "surface conditions", "downhole rate", "cross-flow", "injection temperature", "well solver wiring" | Wells (capability reference, cross-cuts physics) | [examples/wells.md](examples/wells.md) — then back to the matching physics file once the physics is identified |
 
 If the user names a *physics* the orchestrator can't reach (poromechanics,
@@ -105,7 +105,7 @@ Each entry exposes:
 | Thermal single-phase | [examples/thermal_single_phase.md](examples/thermal_single_phase.md) | ✅ 4 entries + 4 wellbore-geometry siblings |
 | Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) | ✅ 4 entries + 6 siblings (incl. Søreide-Whitson sub-family) |
 | Wells (cross-cut capability reference) | [examples/wells.md](examples/wells.md) | ✅ patterns reference (format-exception: no entries/ratings — documents well capabilities and routes back to physics files) |
-| Immiscible | _none yet_ | ⏳ blocked on agents4geos-fot |
+| Immiscible | _none yet_ | ⏳ Phase 1 TODO — `fluid_models.py` wiring landed (agents4geos-fot closed); catalog entry pending |
 
 Tracked under epic agents4geos-3wl, Phase 1 ticket agents4geos-8el.
 
@@ -117,9 +117,9 @@ Tracked under epic agents4geos-3wl, Phase 1 ticket agents4geos-8el.
 - **agents4geos-npm** — Update the README v0.1 "Supported Physics" table
   (it currently understates schema coverage; this catalog references the
   fuller real set).
-- **agents4geos-fot** — Backfill `fluid_models.py` for `BlackOilFluid` and
-  CO₂ Ezrokhi/thermal variants (blocks the "Knowledge-module coverage ⚠️"
-  warnings on several catalog entries).
+- **agents4geos-fot** — Backfilled `fluid_models.py` for `BlackOilFluid` and
+  CO₂ Ezrokhi/thermal variants (✅ closed). The "Knowledge-module coverage ⚠️"
+  warnings on black_oil and co2_brine entries have been updated accordingly.
 - **agents4geos-3wl** — Parent epic.
 - **agents4geos-8el** — Phase 1 survey ticket (in progress).
 

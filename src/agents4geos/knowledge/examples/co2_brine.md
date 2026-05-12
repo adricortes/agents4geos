@@ -78,7 +78,7 @@ directory cover hysteresis (`*_hystRelperm_*`) and direct vs iterative coupling.
 | Driving | 3 pre-wired well controls — pick one and disable the others by name |
 | Temperature | 363 K (90 °C) |
 | Reference elevation | −3000 m (deep aquifer) |
-| Knowledge-module coverage | ⚠️ `CO2BrineEzrokhiFluid` flagged TODO in 2026-03-30 audit — `fluid_models.py` doesn't yet model it. Adapt with care; validation may miss Ezrokhi-specific rules. Tracked in agents4geos-fot. |
+| Knowledge-module coverage | ✅ `CO2BrineEzrokhiFluid` now wired in `fluid_models.py` (keyword: `"ezrokhi"`, `"high salinity co2"`) with the `_ez` suffix PVT-file convention. The XML interface is identical to Phillips — Ezrokhi-specific brine parametrization lives inside the PVT file, not the XML attributes. |
 | Reuse | ★★ — purpose-specific benchmark, but high quality |
 
 ### co2_thermal_2d — Phillips thermal
@@ -100,5 +100,5 @@ case B deck (`compositionalMultiphaseFlow/benchmarks/SPE11/b/spe11b_vti_source_b
 | Driving | Box-defined source (1 side) + sink (opposite corner); no wells |
 | Temperature | 368.15 K initial; both `targetRelativeTemperatureChangeInTimeStep` and `targetPhaseVolFractionChangeInTimeStep` tuned |
 | Timescale | `maxTime=1.5e5` s (≈1.7 days) |
-| Knowledge-module coverage | ⚠️ Thermal Phillips variant not explicitly listed in v0.1 README; sanity-rules for temperature range still apply. Tracked in agents4geos-fot and agents4geos-npm. |
+| Knowledge-module coverage | ✅ `CO2BrinePhillipsThermalFluid` now wired in `fluid_models.py` (keyword: `"co2 thermal"`, `"non-isothermal co2"`) with the thermal constitutive trio (SolidInternalEnergy + MultiPhaseConstantThermalConductivity + the dual-isThermal solver flag on the coupled solid via `solidInternalEnergyModelName`). ⚠️ Still missing from v0.1 README list (agents4geos-npm). |
 | Reuse | ★★★ — primary thermal CO₂ starter |

@@ -16,6 +16,151 @@ from __future__ import annotations
 # "material_list" = what goes in CellElementRegion materialList
 # "constitutive_elements" = all elements to add to <Constitutive> section
 FLUID_MODEL_MAP: list[dict] = [
+    # === CO2-brine variants (most specific first so keyword matcher reaches them) ===
+    {
+        # Schema-defined but no inputFile coverage; we still produce a syntactically
+        # valid deck and let the orchestrator warn that no validated exemplar exists.
+        "keywords": ["ezrokhi thermal", "thermal ezrokhi"],
+        "solver": "CompositionalMultiphaseFVM",
+        "solver_attrs": {"isThermal": "1"},
+        "material_list": ["fluid", "rock", "relperm", "thermalCond"],
+        "constitutive_elements": [
+            {"type": "CO2BrineEzrokhiThermalFluid", "name": "fluid", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "componentNames": "{ co2, water }",
+                "componentMolarWeight": "{ 44e-3, 18e-3 }",
+                "phasePVTParaFiles": "{ pvtgas.txt, pvtliquid_ez.txt }",
+                "flashModelParaFile": "co2flash.txt",
+            }},
+            {"type": "CompressibleSolidConstantPermeability", "name": "rock", "attrs": {
+                "solidModelName": "nullSolid",
+                "porosityModelName": "rockPorosity",
+                "permeabilityModelName": "rockPerm",
+                "solidInternalEnergyModelName": "rockInternalEnergy",
+            }},
+            {"type": "NullModel", "name": "nullSolid", "attrs": {}},
+            {"type": "PressurePorosity", "name": "rockPorosity", "attrs": {
+                "defaultReferencePorosity": "0.2",
+                "referencePressure": "0.0",
+                "compressibility": "1.0e-9",
+            }},
+            {"type": "ConstantPermeability", "name": "rockPerm", "attrs": {
+                "permeabilityComponents": "{ 1.0e-13, 1.0e-13, 1.0e-13 }",
+            }},
+            {"type": "SolidInternalEnergy", "name": "rockInternalEnergy", "attrs": {
+                "referenceVolumetricHeatCapacity": "1.95e6",
+                "referenceTemperature": "368.15",
+                "referenceInternalEnergy": "0",
+            }},
+            {"type": "BrooksCoreyRelativePermeability", "name": "relperm", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "phaseMinVolumeFraction": "{ 0.05, 0.2 }",
+                "phaseRelPermExponent": "{ 2.0, 4.0 }",
+                "phaseRelPermMaxValue": "{ 0.9, 1.0 }",
+            }},
+            {"type": "MultiPhaseConstantThermalConductivity", "name": "thermalCond", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "thermalConductivityComponents": "{ 0.6, 0.6, 0.6 }",
+            }},
+        ],
+        "notes": "Thermal CO2-brine with Ezrokhi correlations. Schema-defined but "
+                 "has ZERO inputFile coverage — no validated exemplar exists. Output "
+                 "is structurally valid but downstream behavior is not benchmarked. "
+                 "Prefer CO2BrinePhillipsThermalFluid (which has 4 inputFile uses) "
+                 "unless the user specifically needs Ezrokhi salinity handling AND "
+                 "thermal physics. See knowledge/examples/co2_brine.md.",
+    },
+    {
+        "keywords": ["co2 thermal", "thermal co2", "non-isothermal co2",
+                     "supercritical co2 thermal", "joule-thomson co2", "cold co2"],
+        "solver": "CompositionalMultiphaseFVM",
+        "solver_attrs": {"isThermal": "1"},
+        "material_list": ["fluid", "rock", "relperm", "thermalCond"],
+        "constitutive_elements": [
+            {"type": "CO2BrinePhillipsThermalFluid", "name": "fluid", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "componentNames": "{ co2, water }",
+                "componentMolarWeight": "{ 44e-3, 18e-3 }",
+                "phasePVTParaFiles": "{ pvtgas.txt, pvtliquid.txt }",
+                "flashModelParaFile": "co2flash.txt",
+            }},
+            {"type": "CompressibleSolidConstantPermeability", "name": "rock", "attrs": {
+                "solidModelName": "nullSolid",
+                "porosityModelName": "rockPorosity",
+                "permeabilityModelName": "rockPerm",
+                "solidInternalEnergyModelName": "rockInternalEnergy",
+            }},
+            {"type": "NullModel", "name": "nullSolid", "attrs": {}},
+            {"type": "PressurePorosity", "name": "rockPorosity", "attrs": {
+                "defaultReferencePorosity": "0.2",
+                "referencePressure": "0.0",
+                "compressibility": "1.0e-9",
+            }},
+            {"type": "ConstantPermeability", "name": "rockPerm", "attrs": {
+                "permeabilityComponents": "{ 1.0e-13, 1.0e-13, 1.0e-13 }",
+            }},
+            {"type": "SolidInternalEnergy", "name": "rockInternalEnergy", "attrs": {
+                "referenceVolumetricHeatCapacity": "1.95e6",
+                "referenceTemperature": "368.15",
+                "referenceInternalEnergy": "0",
+            }},
+            {"type": "BrooksCoreyRelativePermeability", "name": "relperm", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "phaseMinVolumeFraction": "{ 0.0, 0.0 }",
+                "phaseRelPermExponent": "{ 1.5, 1.5 }",
+                "phaseRelPermMaxValue": "{ 0.9, 0.9 }",
+            }},
+            {"type": "MultiPhaseConstantThermalConductivity", "name": "thermalCond", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "thermalConductivityComponents": "{ 0.6, 0.6, 0.6 }",
+            }},
+        ],
+        "notes": "Thermal CO2-brine (Phillips). Use for J-T cooling at the wellhead, "
+                 "cold-plume thermodynamics, or geothermal coupling. Requires "
+                 "isThermal='1' on solver (and on any well solver — see "
+                 "knowledge/examples/wells.md §F). Adds SolidInternalEnergy + "
+                 "MultiPhaseConstantThermalConductivity to the thermal trio. "
+                 "Consider adding ConstantDiffusion for phase-wise component diffusion.",
+    },
+    {
+        "keywords": ["ezrokhi", "high salinity co2", "co2 ezrokhi", "salinity co2"],
+        "solver": "CompositionalMultiphaseFVM",
+        "material_list": ["fluid", "rock", "relperm"],
+        "constitutive_elements": [
+            {"type": "CO2BrineEzrokhiFluid", "name": "fluid", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "componentNames": "{ co2, water }",
+                "componentMolarWeight": "{ 44e-3, 18e-3 }",
+                "phasePVTParaFiles": "{ pvtgas.txt, pvtliquid_ez.txt }",
+                "flashModelParaFile": "co2flash.txt",
+            }},
+            {"type": "CompressibleSolidConstantPermeability", "name": "rock", "attrs": {
+                "solidModelName": "nullSolid",
+                "porosityModelName": "rockPorosity",
+                "permeabilityModelName": "rockPerm",
+            }},
+            {"type": "NullModel", "name": "nullSolid", "attrs": {}},
+            {"type": "PressurePorosity", "name": "rockPorosity", "attrs": {
+                "defaultReferencePorosity": "0.2",
+                "referencePressure": "0.0",
+                "compressibility": "1.0e-9",
+            }},
+            {"type": "ConstantPermeability", "name": "rockPerm", "attrs": {
+                "permeabilityComponents": "{ 1.0e-13, 1.0e-13, 1.0e-13 }",
+            }},
+            {"type": "BrooksCoreyRelativePermeability", "name": "relperm", "attrs": {
+                "phaseNames": "{ gas, water }",
+                "phaseMinVolumeFraction": "{ 0.05, 0.2 }",
+                "phaseRelPermExponent": "{ 2.0, 4.0 }",
+                "phaseRelPermMaxValue": "{ 0.9, 1.0 }",
+            }},
+        ],
+        "notes": "CO2-brine with Ezrokhi correlations (better at high salinity than "
+                 "Phillips). Same XML interface as CO2BrinePhillipsFluid but the "
+                 "underlying brine density/viscosity parametrization differs. PVT "
+                 "files typically use the '_ez' suffix. Only 4 inputFile uses (all "
+                 "SPE Class 09 Pb3 benchmarks). See knowledge/examples/co2_brine.md.",
+    },
     {
         "keywords": ["co2", "carbon", "sequestration", "ccs"],
         "solver": "CompositionalMultiphaseFVM",
@@ -93,7 +238,52 @@ FLUID_MODEL_MAP: list[dict] = [
                  "Adjust component properties for your specific fluid system.",
     },
     {
-        "keywords": ["dead oil", "deadoil", "black oil", "blackoil"],
+        "keywords": ["black oil", "blackoil", "depletion drive", "oil with dissolved gas",
+                     "saturated oil", "unsaturated oil"],
+        "solver": "CompositionalMultiphaseFVM",
+        "material_list": ["fluid", "rock", "relperm"],
+        "constitutive_elements": [
+            {"type": "BlackOilFluid", "name": "fluid", "attrs": {
+                "phaseNames": "{ oil, gas, water }",
+                # Surface densities at standard conditions: oil ~800 kg/m^3 (light crude),
+                # gas ~0.86 kg/m^3 (sales-gas equivalent), water ~1020 kg/m^3 (brine).
+                "surfaceDensities": "{ 800.907131537, 0.856234902739, 1020.3440 }",
+                "componentMolarWeight": "{ 120e-3, 25e-3, 18e-3 }",
+                # PVTO = oil with dissolved gas (Rs vs P), PVTG = gas with no vaporized
+                # oil (Bg, mu_g), PVTW = water. For unsaturated cases, swap to PVDO.
+                "tableFiles": "{ pvto.txt, pvtg.txt, pvtw.txt }",
+            }},
+            {"type": "CompressibleSolidConstantPermeability", "name": "rock", "attrs": {
+                "solidModelName": "nullSolid",
+                "porosityModelName": "rockPorosity",
+                "permeabilityModelName": "rockPerm",
+            }},
+            {"type": "NullModel", "name": "nullSolid", "attrs": {}},
+            {"type": "PressurePorosity", "name": "rockPorosity", "attrs": {
+                "defaultReferencePorosity": "0.2",
+                "referencePressure": "0.0",
+                "compressibility": "1.0e-9",
+            }},
+            {"type": "ConstantPermeability", "name": "rockPerm", "attrs": {
+                "permeabilityComponents": "{ 1.0e-13, 1.0e-13, 1.0e-13 }",
+            }},
+            {"type": "BrooksCoreyRelativePermeability", "name": "relperm", "attrs": {
+                "phaseNames": "{ oil, gas, water }",
+                "phaseMinVolumeFraction": "{ 0.1, 0.05, 0.15 }",
+                "phaseRelPermExponent": "{ 2.0, 2.0, 2.0 }",
+                "phaseRelPermMaxValue": "{ 0.8, 0.9, 0.9 }",
+            }},
+        ],
+        "notes": "Black oil (oil + dissolved/free gas + water) — 3-phase with PVT-table "
+                 "mass transfer (Rs/Rv). Component order is {oil, gas, water} by convention. "
+                 "Saturated variant (free gas, Rs = Rs_max) uses PVTO/PVTG tables; "
+                 "unsaturated (all gas dissolved, Rs < Rs_max) uses PVDO/PVDG instead. "
+                 "3-phase Brooks-Corey defaults to Stone-I interpolation — swap to "
+                 "BrooksCoreyStone2RelativePermeability for Stone-II (intermediate-wet "
+                 "oil-gas-water systems). See knowledge/examples/black_oil.md.",
+    },
+    {
+        "keywords": ["dead oil", "deadoil", "oil water no gas"],
         "solver": "CompositionalMultiphaseFVM",
         "material_list": ["fluid", "rock", "relperm"],
         "constitutive_elements": [
@@ -124,8 +314,12 @@ FLUID_MODEL_MAP: list[dict] = [
                 "phaseRelPermMaxValue": "{ 0.8, 0.9, 0.9 }",
             }},
         ],
-        "notes": "Dead/black oil model (most common multiphase). Requires external PVT table "
-                 "files (pvdo.txt, pvdg.txt, pvtw.txt). Uses 3-phase Brooks-Corey relperm.",
+        "notes": "Dead oil — 2- or 3-phase immiscible no-mass-transfer container. Despite "
+                 "the name, also used to model gas-water systems (e.g. Buckley-Leverett "
+                 "uses DeadOilFluid for CO2-water with componentMolarWeight={44, 18}). "
+                 "Requires external PVT table files. Phase count is set by phaseNames "
+                 "and MUST match the lengths of surfaceDensities, componentMolarWeight, "
+                 "and tableFiles. See knowledge/examples/dead_oil.md.",
     },
     {
         "keywords": ["thermal", "heat", "temperature dependent", "geothermal"],
@@ -175,11 +369,23 @@ FLUID_MODEL_MAP: list[dict] = [
                  "SinglePhaseThermalConductivity. Coupled solid gets solidInternalEnergyModelName.",
     },
     {
-        "keywords": ["immiscible", "two-phase", "oil water", "water oil"],
-        "solver": "ImmiscibleMultiphaseFlow",
+        "keywords": ["immiscible", "two-phase immiscible", "two-phase oil water",
+                     "oil water no transfer", "spe10 immiscible"],
+        # NOTE: ImmiscibleMultiphaseFlow is not actually a v0.1 solver — production decks
+        # use CompositionalMultiphaseFVM with TwoPhaseImmiscibleFluid (e.g. the SPE 10
+        # layer 84 and Buckley-Leverett immiscible benchmarks). Keep the solver field
+        # in sync with how the orchestrator actually wires the deck.
+        "solver": "CompositionalMultiphaseFVM",
         "material_list": ["fluid", "rock", "relperm"],
         "constitutive_elements": [
-            {"type": "TwoPhaseImmiscibleFluid", "name": "fluid", "attrs": {}},
+            {"type": "TwoPhaseImmiscibleFluid", "name": "fluid", "attrs": {
+                "phaseNames": "{ oil, water }",
+                # densityTableNames + viscosityTableNames reference <TableFunction>
+                # elements declared under <Functions>. Each table must provide P vs
+                # density (kg/m^3) and P vs viscosity (Pa·s) for its phase.
+                "densityTableNames": "{ densityTableOil, densityTableWater }",
+                "viscosityTableNames": "{ viscosityTableOil, viscosityTableWater }",
+            }},
             {"type": "CompressibleSolidConstantPermeability", "name": "rock", "attrs": {
                 "solidModelName": "nullSolid",
                 "porosityModelName": "rockPorosity",
