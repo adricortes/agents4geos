@@ -1,6 +1,6 @@
-# AGENTS.md — Agents4GEOSX
+# AGENTS.md — Agents4GEOS
 
-This document formalizes the Agents4GEOSX architecture. It serves both as
+This document formalizes the Agents4GEOS architecture. It serves both as
 operational instructions for Claude Code (defining agent boundaries, model
 routing, and coordination rules) and as architecture documentation for
 human developers.
