@@ -392,7 +392,7 @@ add_text(s4, "Output: validated GEOS XML  (200-500 lines with correct cross-refe
          0.3, 2.65, 12.7, 0.45, font_size=15, italic=True, color=LIGHT_GRAY, align=PP_ALIGN.CENTER)
 
 # ── Knowledge modules ──────────────────────────────────────────────────────
-add_text(s4, "Knowledge Base  —  Domain Expertise Encoded in 5 Modules",
+add_text(s4, "Knowledge Base  —  Domain Expertise Encoded in 5 Files",
          0.3, 3.2, 12.7, 0.45, font_size=17, bold=True, color=ORANGE)
 
 km = [
