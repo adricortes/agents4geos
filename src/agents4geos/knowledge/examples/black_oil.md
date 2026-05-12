@@ -54,7 +54,7 @@ production with gas cap, or doesn't specify Stone-I vs Stone-II.
 | Wells | `InternalWell` defined inside `InternalMesh`, single perforation each, polyline geometry |
 | Temperature | 297.15 K (24 °C) — surface-like, typical for shallow black-oil exemplars |
 | Initial dt | 86 400 s (1 day) |
-| Knowledge-module coverage | ⚠️ Black oil not in v0.1 README list; needs `fluid_models.py` entry. Stone-I/II relperm not in `relperm_models` yet. Tracked in agents4geos-fot and agents4geos-npm. |
+| Knowledge-module coverage | ✅ `BlackOilFluid` now wired in `fluid_models.py` (keyword: `"black oil"`, `"depletion drive"`, `"saturated oil"`) with proper {oil, gas, water} component order and PVTO/PVTG/PVTW table convention. ⚠️ Still missing from v0.1 README list (tracked in agents4geos-npm). Stone-I/II relperm not yet in a dedicated relperm-models module — Stone-II via `BrooksCoreyStone2RelativePermeability` element swap is documented in the dead-oil siblings list (separate follow-up). |
 | Reuse | ★★★ — primary black-oil starter; the unsaturated and Stone-II siblings reuse this skeleton |
 
 ### Sibling variants (no separate entries)
