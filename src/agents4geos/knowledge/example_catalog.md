@@ -44,7 +44,7 @@ the right column.
 | "CO₂ injection", "CO₂ storage", "sequestration", "Sleipner-like", "Phillips", "Ezrokhi", "supercritical CO₂", SPE 11, SPE 09 / Class 09 | CO₂-brine | [examples/co2_brine.md](examples/co2_brine.md) |
 | "waterflood", "oil + gas + water", "black oil", "depletion drive", "Stone-I", "Stone-II" | Black oil | [examples/black_oil.md](examples/black_oil.md) |
 | "dead oil", "oil + water", "no gas dissolved", "Buckley-Leverett", "Egg model", "SPE 10", "install sanity check" | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) |
-| "compositional", "PR EOS", "EOS-based", "LBC viscosity" | Compositional multiphase (generic) | _(stub — Phase 1 TODO)_ |
+| "compositional", "PR EOS", "EOS-based", "sour gas", "H₂S", "Søreide-Whitson", "lock exchange", "4-component oil-gas" | Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) |
 | "two-phase immiscible", `TwoPhaseImmiscibleFluid` | Immiscible | _(stub — blocked on agents4geos-fot)_ |
 | Any well-centric request — "injector + producer", "multiple wells", "BHP-controlled well" | Cross-cuts categories | _(stub — Phase 1 TODO)_ |
 
@@ -64,6 +64,7 @@ When the user names a benchmark by name, route directly:
 | SPE Class 09 Pb3 | CO₂-brine | `class09_pb3_drainageOnly_iterative_base` (+ hyst/direct siblings) |
 | SPE 11 case B | CO₂-brine | `spe11b_vti_source_base` (Phillips thermal) |
 | Field Case Tutorial 3 | Single-phase flow | `FieldCaseTutorial3_Isothermal_base` |
+| Lock exchange (Søreide-Whitson) | Compositional multiphase | `soreideWhitson/lockExchange/lockExchange_base` |
 
 ## Format conventions (used by all detail files)
 
@@ -95,7 +96,7 @@ Each entry exposes:
 | Black oil | [examples/black_oil.md](examples/black_oil.md) | ✅ 1 entry + 3 siblings |
 | Dead oil | [examples/dead_oil.md](examples/dead_oil.md) | ✅ 4 entries + 7 siblings |
 | Thermal single-phase | [examples/thermal_single_phase.md](examples/thermal_single_phase.md) | ✅ 4 entries + 4 wellbore-geometry siblings |
-| Compositional multiphase (generic) | _none yet_ | ⏳ Phase 1 TODO |
+| Compositional multiphase (generic) | [examples/compositional_multiphase.md](examples/compositional_multiphase.md) | ✅ 4 entries + 6 siblings (incl. Søreide-Whitson sub-family) |
 | Wells (cross-cut) | _none yet_ | ⏳ Phase 1 TODO |
 | Immiscible | _none yet_ | ⏳ blocked on agents4geos-fot |
 
