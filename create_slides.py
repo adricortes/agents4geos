@@ -359,26 +359,32 @@ add_text(s4, "End-to-End Workflow  &  Knowledge Base",
 
 # ── Workflow arrow chain ────────────────────────────────────────────────────
 steps = [
-    ("Natural\nLanguage\nInput",  TEAL,   0.3),
-    ("Mesh\n/geos:mesh",          GREEN,  2.4),
-    ("Fluids\n/geos:fluids",      ORANGE, 4.5),
-    ("XML Assembly\n/geos",       PURPLE, 6.6),
-    ("Validation\n/geos:validate",RED_SOFT,8.7),
-    ("Post-Process\n/geos:post",  RGBColor(0xFF,0xB7,0x4D), 10.8),
+    ("Natural\nLanguage\nInput",  TEAL),
+    ("Mesh\n/geos:mesh",          GREEN),
+    ("Fluids\n/geos:fluids",      ORANGE),
+    ("XML Assembly\n/geos",       PURPLE),
+    ("Validation\n/geos:validate",RED_SOFT),
+    ("Post-Process\n/geos:post",  RGBColor(0xFF,0xB7,0x4D)),
 ]
 
-box_w = 1.95
-box_h = 1.4
-box_y = 0.9
+n      = len(steps)
+margin = 0.28
+arrow_slot = 0.42          # visible gap reserved for each arrow
+usable = 13.33 - 2 * margin
+box_w  = (usable - (n - 1) * arrow_slot) / n   # ≈ 1.75
+box_h  = 1.35
+box_y  = 0.9
+step   = box_w + arrow_slot
 
-for i, (label, col, lft) in enumerate(steps):
+for i, (label, col) in enumerate(steps):
+    lft = margin + i * step
     add_rect(s4, lft, box_y, box_w, box_h, col)
-    add_text(s4, label, lft+0.05, box_y+0.1, box_w-0.1, box_h-0.15,
-             font_size=13, bold=(i == 0), color=DARK_BG, align=PP_ALIGN.CENTER)
-    if i < len(steps) - 1:
-        arr_x = lft + box_w + 0.02
-        add_text(s4, "▶", arr_x, box_y + 0.45, 0.32, 0.5,
-                 font_size=20, bold=True, color=LIGHT_GRAY, align=PP_ALIGN.CENTER)
+    add_text(s4, label, lft + 0.05, box_y + 0.08, box_w - 0.1, box_h - 0.12,
+             font_size=12, bold=(i == 0), color=DARK_BG, align=PP_ALIGN.CENTER)
+    if i < n - 1:
+        arr_cx = lft + box_w + arrow_slot / 2   # centre of the gap
+        add_text(s4, "▶", arr_cx - 0.2, box_y + 0.42, 0.4, 0.5,
+                 font_size=18, bold=True, color=LIGHT_GRAY, align=PP_ALIGN.CENTER)
 
 # ── Output box ─────────────────────────────────────────────────────────────
 add_rect(s4, 0.3, 2.55, 12.7, 0.05, ORANGE)
