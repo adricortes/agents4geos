@@ -19,7 +19,10 @@ Built on geos-tui (schema/xml), pyResToolbox (fluid PVT), PyVista (mesh/VTK).
 - `AGENTS.md` — Agent architecture: taxonomy, tiers, registry, coordination patterns
 
 ## Key dependency: geos-tui
-Schema path default: resolved via GEOS_SCHEMA env var or ../../geos-tui/geos/build/schema.xsd
+The `geos-tui` Python package (editable install at `../../geos-tui` → `~/geos-tui`) provides the schema parser, XML reader/writer, templates, and validation.
+
+## Schema source
+The GEOS `schema.xsd` is a **GEOS build artifact**, not part of geos-tui. Set `GEOS_SCHEMA=/path/to/GEOS/build/schema.xsd`; on subsequent runs the cached `src/agents4geos/.cache/schema.json` is reused. If `GEOS_SCHEMA` is unset and no cache exists, `get_schema()` raises a `FileNotFoundError` naming both fixes.
 
 
 
