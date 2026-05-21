@@ -110,6 +110,42 @@ For the full tool inventory and agent-tool mappings, see [AGENTS.md §4](AGENTS.
 
 Poromechanics, geomechanics, acoustic/seismic, and unstructured mesh generation are deferred — see [CLAUDE.md](../../geos-tui/CLAUDE.md) for the full scope definition.
 
+## Quick Start for Evaluators
+
+If you just want to try agents4geos without building GEOS or hand-cloning four
+repositories, use the bootstrap script. It clones the editable dependencies
+(`geos-tui`, `pyResToolbox`, `pyvista`) to the locations that `pyproject.toml`
+expects, then runs `uv sync` and verifies imports.
+
+```bash
+# 1. Clone agents4geos into a parent directory of your choice
+git clone https://github.com/adricortes/agents4geos.git
+cd agents4geos
+
+# 2. Bootstrap dependencies (clones geos-tui, pyResToolbox, pyvista as siblings)
+bash scripts/install-for-evaluators.sh
+```
+
+The script:
+- requires `git`, `uv` (https://docs.astral.sh/uv/) and Python 3.11+
+- clones each dependency with `--depth 1` into the right relative path
+- skips any dependency that is already cloned
+- runs `uv sync --all-extras`
+- imports each library to confirm the install
+- loads the **bundled GEOS schema** (committed at `src/agents4geos/.cache/schema.json`),
+  so you do **not** need a local GEOS build for evaluation
+
+After it finishes, register the MCP server with Claude Code — see
+[Installation → Step 3](#3-set-up-a-workspace) below for the `claude mcp add`
+command. Real users who later build GEOS should set `GEOS_SCHEMA` to override
+the bundled schema with their own.
+
+> **Note (2026-05-21):** the editable-path dependencies in `pyproject.toml` are
+> a known onboarding cliff and are tracked for removal in
+> [`agents4geos-cc4`](https://github.com/adricortes/agents4geos), `-nsu`, `-eqn`.
+> This script is the interim path until those deps are published or pinned to
+> git URLs.
+
 ## Requirements
 
 - Python 3.11+

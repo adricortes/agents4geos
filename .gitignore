@@ -3,7 +3,11 @@ __pycache__/
 .venv/
 *.egg-info/
 .pytest_cache/
-src/agents4geos/.cache/
+# src/agents4geos/.cache/schema.json is committed so evaluators can use
+# agents4geos without building GEOS first. Other cache artifacts are ignored.
+src/agents4geos/.cache/*
+!src/agents4geos/.cache/schema.json
+!src/agents4geos/.cache/SCHEMA_PROVENANCE.md
 knowledge/runtime_errors.jsonl
 
 # Beads / Dolt files (added by bd init)
