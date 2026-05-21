@@ -25,12 +25,16 @@ AGENTS4GEOS_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
 #   geos-tui     = "../../geos-tui"
 #   pyrestoolbox = "../pyResToolbox"
 #   pyvista      = "../pyvista"
+# geos-tui transitively requires textual as an editable path inside itself:
+#   geos-tui/pyproject.toml: textual = "./textual"  (stock Textualize/textual)
 GEOS_TUI_DIR="$( cd "$AGENTS4GEOS_DIR/../.." && pwd )/geos-tui"
 PYRTB_DIR="$( cd "$AGENTS4GEOS_DIR/.." && pwd )/pyResToolbox"
 PYVISTA_DIR="$( cd "$AGENTS4GEOS_DIR/.." && pwd )/pyvista"
+TEXTUAL_DIR="$GEOS_TUI_DIR/textual"
 
 echo "agents4geos:         $AGENTS4GEOS_DIR"
 echo "geos-tui target:     $GEOS_TUI_DIR"
+echo "  + textual (inside): $TEXTUAL_DIR"
 echo "pyResToolbox target: $PYRTB_DIR"
 echo "pyvista target:      $PYVISTA_DIR"
 echo
@@ -67,6 +71,13 @@ clone_if_missing() {
 clone_if_missing "$GEOS_TUI_DIR" \
     "https://github.com/adricortes/geos-tui.git" \
     "geos-tui"
+
+# geos-tui's pyproject.toml has [tool.uv.sources] textual = "./textual"
+# pointing at a stock Textualize/textual checkout. Tracked for removal upstream
+# in geos-tui (see beads agents4geos-dms); until then, satisfy it here.
+clone_if_missing "$TEXTUAL_DIR" \
+    "https://github.com/Textualize/textual.git" \
+    "textual (for geos-tui)"
 
 clone_if_missing "$PYRTB_DIR" \
     "https://github.com/adricortes/pyResToolbox.git" \
