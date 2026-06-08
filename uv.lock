@@ -16,7 +16,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
-    { name = "geos-tui" },
     { name = "lxml" },
     { name = "numpy" },
     { name = "pyvista" },
@@ -36,14 +35,13 @@ fluids = [
 [package.metadata]
 requires-dist = [
     { name = "fastmcp", specifier = ">=2.0" },
-    { name = "geos-tui", editable = "../../geos-tui" },
     { name = "lxml", specifier = ">=5.0" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "pandas", marker = "extra == 'fluids'", specifier = ">=2.0" },
-    { name = "pyrestoolbox", marker = "extra == 'fluids'", editable = "../pyResToolbox" },
+    { name = "pyrestoolbox", marker = "extra == 'fluids'", git = "https://github.com/adricortes/pyResToolbox.git?rev=bad0208" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "pyvista", editable = "../pyvista" },
+    { name = "pyvista", specifier = ">=0.43" },
     { name = "scipy", marker = "extra == 'fluids'", specifier = ">=1.10" },
 ]
 provides-extras = ["fluids", "dev"]
@@ -652,29 +650,6 @@ wheels = [
 ]
 
 [[package]]
-name = "geos-tui"
-version = "0.1.0"
-source = { editable = "../../geos-tui" }
-dependencies = [
-    { name = "lxml" },
-    { name = "pydantic" },
-    { name = "textual" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "lxml", specifier = ">=5.0" },
-    { name = "pydantic", specifier = ">=2.0" },
-    { name = "textual", editable = "../../geos-tui/textual" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "pytest-asyncio", specifier = ">=1.3.0" },
-]
-
-[[package]]
 name = "gwr-inversion"
 version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -983,18 +958,6 @@ wheels = [
 ]
 
 [[package]]
-name = "linkify-it-py"
-version = "2.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "uc-micro-py" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/2e/c9/06ea13676ef354f0af6169587ae292d3e2406e212876a413bf9eece4eb23/linkify_it_py-2.1.0.tar.gz", hash = "sha256:43360231720999c10e9328dc3691160e27a718e280673d444c38d7d3aaa3b98b", size = 29158, upload-time = "2026-03-01T07:48:47.683Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/de/88b3be5c31b22333b3ca2f6ff1de4e863d8fe45aaea7485f591970ec1d3e/linkify_it_py-2.1.0-py3-none-any.whl", hash = "sha256:0d252c1594ecba2ecedc444053db5d3a9b7ec1b0dd929c8f1d74dce89f86c05e", size = 19878, upload-time = "2026-03-01T07:48:46.098Z" },
-]
-
-[[package]]
 name = "lxml"
 version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1108,11 +1071,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/94/54/e7d793b573f298e1c9013b8c4dade17d481164aa517d1d7148619c2cedbf/markdown_it_py-4.0.0-py3-none-any.whl", hash = "sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147", size = 87321, upload-time = "2025-08-11T12:57:51.923Z" },
 ]
 
-[package.optional-dependencies]
-linkify = [
-    { name = "linkify-it-py" },
-]
-
 [[package]]
 name = "matplotlib"
 version = "3.10.8"
@@ -1200,18 +1158,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fc/6d/62e76bbb8144d6ed86e202b5edd8a4cb631e7c8130f3f4893c3f90262b10/mcp-1.26.0.tar.gz", hash = "sha256:db6e2ef491eecc1a0d93711a76f28dec2e05999f93afd48795da1c1137142c66", size = 608005, upload-time = "2026-01-24T19:40:32.468Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/d9/eaa1f80170d2b7c5ba23f3b59f766f3a0bb41155fbc32a69adfa1adaaef9/mcp-1.26.0-py3-none-any.whl", hash = "sha256:904a21c33c25aa98ddbeb47273033c435e595bbacfdb177f4bd87f6dceebe1ca", size = 233615, upload-time = "2026-01-24T19:40:30.652Z" },
-]
-
-[[package]]
-name = "mdit-py-plugins"
-version = "0.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "markdown-it-py" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/fd/a756d36c0bfba5f6e39a1cdbdbfdd448dc02692467d83816dff4592a1ebc/mdit_py_plugins-0.5.0.tar.gz", hash = "sha256:f4918cb50119f50446560513a8e311d574ff6aaed72606ddae6d35716fe809c6", size = 44655, upload-time = "2025-08-11T07:25:49.083Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fb/86/dd6e5db36df29e76c7a7699123569a4a18c1623ce68d826ed96c62643cae/mdit_py_plugins-0.5.0-py3-none-any.whl", hash = "sha256:07a08422fc1936a5d26d146759e9155ea466e842f5ab2f7d2266dd084c8dab1f", size = 57205, upload-time = "2025-08-11T07:25:47.597Z" },
 ]
 
 [[package]]
@@ -1763,19 +1709,8 @@ wheels = [
 [[package]]
 name = "pyrestoolbox"
 version = "3.1.0"
-source = { editable = "../pyResToolbox" }
+source = { git = "https://github.com/adricortes/pyResToolbox.git?rev=bad0208#bad0208cfdfd51fe31bca4570c6e27670c2df512" }
 dependencies = [
-    { name = "gwr-inversion" },
-    { name = "mpmath" },
-    { name = "numpy" },
-    { name = "openpyxl" },
-    { name = "pandas" },
-    { name = "scipy" },
-    { name = "tabulate" },
-]
-
-[package.metadata]
-requires-dist = [
     { name = "gwr-inversion" },
     { name = "mpmath" },
     { name = "numpy" },
@@ -1846,7 +1781,8 @@ wheels = [
 
 [[package]]
 name = "pyvista"
-source = { editable = "../pyvista" }
+version = "0.48.4"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cyclopts" },
     { name = "matplotlib" },
@@ -1857,214 +1793,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "vtk" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "cmcrameri", marker = "extra == 'colormaps'" },
-    { name = "cmocean", marker = "extra == 'colormaps'" },
-    { name = "colorcet", marker = "extra == 'colormaps'" },
-    { name = "cyclopts", specifier = ">=4.0.0" },
-    { name = "imageio", marker = "extra == 'io'" },
-    { name = "ipywidgets", marker = "extra == 'jupyter'" },
-    { name = "jupyter-server-proxy", marker = "extra == 'jupyter'" },
-    { name = "matplotlib", specifier = ">=3.0.1" },
-    { name = "meshio", marker = "extra == 'io'", specifier = ">=5.2" },
-    { name = "nest-asyncio2", marker = "extra == 'jupyter'" },
-    { name = "numpy", specifier = ">=1.21.0" },
-    { name = "pillow" },
-    { name = "pooch" },
-    { name = "pyvista", extras = ["colormaps", "io", "jupyter"], marker = "extra == 'all'" },
-    { name = "scooby", specifier = ">=0.5.1" },
-    { name = "trame", marker = "extra == 'jupyter'", specifier = ">=2.5.2" },
-    { name = "trame-client", marker = "extra == 'jupyter'", specifier = ">=2.12.7" },
-    { name = "trame-server", marker = "extra == 'jupyter'", specifier = ">=2.11.7,!=3.7.*,!=3.8.0" },
-    { name = "trame-vtk", marker = "extra == 'jupyter'", specifier = "!=2.10.3,!=2.11.0,!=2.11.1,!=2.11.2,!=2.11.3,!=2.11.4,!=2.11.5" },
-    { name = "trame-vtk", marker = "extra == 'jupyter'", specifier = ">=2.5.8,<2.11.7" },
-    { name = "trame-vuetify", marker = "extra == 'jupyter'", specifier = ">=2.3.1" },
-    { name = "typing-extensions", specifier = ">=4.10" },
-    { name = "vtk", specifier = "!=9.4.0" },
-    { name = "vtk", specifier = "!=9.4.1" },
-    { name = "vtk", specifier = "<9.7.0" },
-    { name = "vtk", specifier = ">=9.2.2" },
-]
-provides-extras = ["all", "colormaps", "io", "jupyter"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "cmcrameri", specifier = "<1.10.0" },
-    { name = "cmocean", specifier = "<4.0.4" },
-    { name = "colorcet", specifier = "<3.2.0" },
-    { name = "cyclopts", specifier = "<4.10.0" },
-    { name = "embreex", marker = "platform_machine != 'arm64' or sys_platform != 'darwin'", specifier = "<2.17.8" },
-    { name = "hypothesis", specifier = "<6.151.10" },
-    { name = "imageio", specifier = "<2.38.0" },
-    { name = "imageio-ffmpeg", specifier = "<0.7.0" },
-    { name = "ipython", specifier = "<10.0.0" },
-    { name = "ipywidgets", specifier = "<9.0.0" },
-    { name = "libcst", specifier = "<1.8.7" },
-    { name = "matplotlib", specifier = "<3.10.9" },
-    { name = "meshio", specifier = "<5.4.0" },
-    { name = "mypy", specifier = "<1.20.0" },
-    { name = "nest-asyncio2", specifier = "<1.8.0" },
-    { name = "npt-promote", specifier = "==0.2" },
-    { name = "numpy", specifier = "<2.4.0" },
-    { name = "numpy", specifier = ">=2.0.0" },
-    { name = "numpydoc", specifier = "<1.11.0" },
-    { name = "pandas", specifier = "<=2.4.0" },
-    { name = "pillow", specifier = "<12.2.0" },
-    { name = "pooch", specifier = "<1.10.0" },
-    { name = "pre-commit" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'" },
-    { name = "pytest", specifier = "<9.1.0" },
-    { name = "pytest-cases", specifier = "<3.11.0" },
-    { name = "pytest-cov", specifier = "<7.1.0" },
-    { name = "pytest-mock", specifier = "<3.16.0" },
-    { name = "pytest-mypy-plugins", specifier = "<4.1.0" },
-    { name = "pytest-pyvista", specifier = "==0.3.2" },
-    { name = "pytest-xdist", specifier = "<3.9.0" },
-    { name = "retry-requests", specifier = "<2.1.0" },
-    { name = "scipy", specifier = "<1.17.0" },
-    { name = "scooby", specifier = "<0.12.0" },
-    { name = "sphinx", specifier = "<8.3.0" },
-    { name = "sphinx-book-theme", specifier = "<1.2.0" },
-    { name = "sphinx-design", specifier = "<0.7.0" },
-    { name = "sphinx-gallery", specifier = "<0.21.0" },
-    { name = "sympy", specifier = "<1.15.0" },
-    { name = "tqdm", specifier = "<4.68.0" },
-    { name = "trame", specifier = ">=2.5.2,<3.13.0" },
-    { name = "trame-vtk", specifier = ">=2.5.8,<2.11.7" },
-    { name = "trame-vuetify", specifier = ">=2.3.1,<3.3.0" },
-    { name = "trimesh", specifier = "<4.12.0" },
-    { name = "typing-extensions", specifier = "<4.16.0" },
-]
-docs = [
-    { name = "atsphinx-mini18n", specifier = "==0.5.1" },
-    { name = "cmcrameri", specifier = "==1.9.0" },
-    { name = "cmocean", specifier = "==4.0.3" },
-    { name = "colorcet", specifier = "==3.1.0" },
-    { name = "colour-science", specifier = "==0.4.6" },
-    { name = "cyclopts", specifier = "<4.10.0" },
-    { name = "enum-tools", specifier = "==0.13.0" },
-    { name = "imageio", specifier = "==2.37.3" },
-    { name = "imageio-ffmpeg", specifier = "==0.6.0" },
-    { name = "joblib", specifier = "==1.5.3" },
-    { name = "jupyter-sphinx", specifier = "==0.5.3" },
-    { name = "jupyterlab", specifier = "==4.5.6" },
-    { name = "lxml", specifier = "==6.0.2" },
-    { name = "matplotlib", specifier = "<3.10.9" },
-    { name = "meshio", specifier = "==5.3.5" },
-    { name = "mypy", specifier = "==1.19.1" },
-    { name = "mypy-extensions", specifier = "==1.1.0" },
-    { name = "nest-asyncio2", specifier = "==1.7.2" },
-    { name = "numpy", specifier = "<2.4.0" },
-    { name = "numpydoc", specifier = "==1.10.0" },
-    { name = "pillow", specifier = "<12.2.0" },
-    { name = "pooch", specifier = "<1.10.0" },
-    { name = "pydata-sphinx-theme", specifier = "==0.15.4" },
-    { name = "pypandoc", specifier = "==1.16.2" },
-    { name = "pytest-sphinx", specifier = "==0.7.1" },
-    { name = "ruamel-yaml", specifier = "<0.20.0" },
-    { name = "scipy", marker = "python_full_version >= '3.11'", specifier = "==1.16.0" },
-    { name = "scooby", specifier = "<0.12.0" },
-    { name = "sphinx", marker = "python_full_version >= '3.11'", specifier = "==8.2.3" },
-    { name = "sphinx-autobuild", specifier = "==2024.10.3" },
-    { name = "sphinx-book-theme", specifier = "==1.1.4" },
-    { name = "sphinx-copybutton", specifier = "==0.5.2" },
-    { name = "sphinx-design", specifier = "==0.6.1" },
-    { name = "sphinx-gallery", specifier = "==0.20.0" },
-    { name = "sphinx-notfound-page", specifier = "==1.1.0" },
-    { name = "sphinx-sitemap", specifier = "==2.9.0" },
-    { name = "sphinx-tags", specifier = "==0.4.0" },
-    { name = "sphinx-togglebutton", specifier = "==0.4.4" },
-    { name = "sphinx-toolbox", specifier = "==4.1.2" },
-    { name = "sphinxcontrib-asciinema", specifier = "==0.4.3" },
-    { name = "sphinxcontrib-websupport", specifier = "==2.0.0" },
-    { name = "sphinxext-opengraph", specifier = "==0.13.0" },
-    { name = "sympy", specifier = "==1.14.0" },
-    { name = "trame", specifier = "==3.12.0" },
-    { name = "trame-vtk", specifier = "==2.11.6" },
-    { name = "trame-vuetify", specifier = "==3.2.1" },
-    { name = "trimesh", specifier = "==4.11.3" },
-    { name = "typing-extensions", specifier = "<4.16.0" },
-    { name = "vtk-xref", specifier = "==0.1.1" },
-]
-docs-test = [
-    { name = "cyclopts", specifier = "<4.10.0" },
-    { name = "matplotlib", specifier = "<3.10.9" },
-    { name = "numpy", specifier = "<2.4.0" },
-    { name = "pillow", specifier = "<12.2.0" },
-    { name = "pooch", specifier = "<1.10.0" },
-    { name = "pytest-pyvista", extras = ["vtksz"], specifier = "==0.3.2" },
-    { name = "pytest-xdist", specifier = "<3.9.0" },
-    { name = "scooby", specifier = "<0.12.0" },
-    { name = "trame-vtk", specifier = "==2.11.6" },
-    { name = "typing-extensions", specifier = "<4.16.0" },
-]
-pinned = [
-    { name = "cyclopts", specifier = "<4.10.0" },
-    { name = "matplotlib", specifier = "<3.10.9" },
-    { name = "numpy", specifier = "<2.4.0" },
-    { name = "pillow", specifier = "<12.2.0" },
-    { name = "pooch", specifier = "<1.10.0" },
-    { name = "scooby", specifier = "<0.12.0" },
-    { name = "typing-extensions", specifier = "<4.16.0" },
-]
-test = [
-    { name = "cmcrameri", specifier = "<1.10.0" },
-    { name = "cmocean", specifier = "<4.0.4" },
-    { name = "colorcet", specifier = "<3.2.0" },
-    { name = "cyclopts", specifier = "<4.10.0" },
-    { name = "embreex", marker = "platform_machine != 'arm64' or sys_platform != 'darwin'", specifier = "<2.17.8" },
-    { name = "hypothesis", specifier = "<6.151.10" },
-    { name = "imageio", specifier = "<2.38.0" },
-    { name = "imageio-ffmpeg", specifier = "<0.7.0" },
-    { name = "ipython", specifier = "<10.0.0" },
-    { name = "ipywidgets", specifier = "<9.0.0" },
-    { name = "libcst", specifier = "<1.8.7" },
-    { name = "matplotlib", specifier = "<3.10.9" },
-    { name = "meshio", specifier = "<5.4.0" },
-    { name = "nest-asyncio2", specifier = "<1.8.0" },
-    { name = "numpy", specifier = "<2.4.0" },
-    { name = "numpydoc", specifier = "<1.11.0" },
-    { name = "pandas", specifier = "<=2.4.0" },
-    { name = "pillow", specifier = "<12.2.0" },
-    { name = "pooch", specifier = "<1.10.0" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'" },
-    { name = "pytest", specifier = "<9.1.0" },
-    { name = "pytest-cases", specifier = "<3.11.0" },
-    { name = "pytest-cov", specifier = "<7.1.0" },
-    { name = "pytest-mock", specifier = "<3.16.0" },
-    { name = "pytest-mypy-plugins", specifier = "<4.1.0" },
-    { name = "pytest-pyvista", specifier = "==0.3.2" },
-    { name = "pytest-xdist", specifier = "<3.9.0" },
-    { name = "retry-requests", specifier = "<2.1.0" },
-    { name = "scipy", specifier = "<1.17.0" },
-    { name = "scooby", specifier = "<0.12.0" },
-    { name = "sphinx", specifier = "<8.3.0" },
-    { name = "sphinx-book-theme", specifier = "<1.2.0" },
-    { name = "sphinx-design", specifier = "<0.7.0" },
-    { name = "sphinx-gallery", specifier = "<0.21.0" },
-    { name = "sympy", specifier = "<1.15.0" },
-    { name = "tqdm", specifier = "<4.68.0" },
-    { name = "trame", specifier = ">=2.5.2,<3.13.0" },
-    { name = "trame-vtk", specifier = ">=2.5.8,<2.11.7" },
-    { name = "trame-vuetify", specifier = ">=2.3.1,<3.3.0" },
-    { name = "trimesh", specifier = "<4.12.0" },
-    { name = "typing-extensions", specifier = "<4.16.0" },
-]
-typing = [
-    { name = "cyclopts", specifier = "<4.10.0" },
-    { name = "matplotlib", specifier = "<3.10.9" },
-    { name = "meshio", specifier = "<5.4.0" },
-    { name = "mypy", specifier = "<1.20.0" },
-    { name = "npt-promote", specifier = "==0.2" },
-    { name = "numpy", specifier = "<2.4.0" },
-    { name = "numpy", specifier = ">=2.0.0" },
-    { name = "pillow", specifier = "<12.2.0" },
-    { name = "pooch", specifier = "<1.10.0" },
-    { name = "scooby", specifier = "<0.12.0" },
-    { name = "trimesh", specifier = "<4.12.0" },
-    { name = "typing-extensions", specifier = "<4.16.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/a6/11/554ae45f79d45039c733d93acb36a433b71e8c63a79bbf2f414b3685de18/pyvista-0.48.4.tar.gz", hash = "sha256:c639dad1bddff5e366d77371f66f783f6e6a0581446810a66439902222d8db07", size = 2581423, upload-time = "2026-05-18T02:25:51.828Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4d/91/696d869e4df2e25a5b201a69ce69a2204d37fad3e90c2b731f7b3f1d7c68/pyvista-0.48.4-py3-none-any.whl", hash = "sha256:a46eda178e10e279afda550c341676a82dcee607c86db74565fa455ac0bd23e2", size = 2629373, upload-time = "2026-05-18T02:25:49.919Z" },
 ]
 
 [[package]]
@@ -2451,46 +2182,6 @@ wheels = [
 ]
 
 [[package]]
-name = "textual"
-version = "8.0.0"
-source = { editable = "../../geos-tui/textual" }
-dependencies = [
-    { name = "markdown-it-py", extra = ["linkify"] },
-    { name = "mdit-py-plugins" },
-    { name = "platformdirs" },
-    { name = "pygments" },
-    { name = "rich" },
-    { name = "typing-extensions" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "markdown-it-py", extras = ["linkify"], specifier = ">=2.1.0" },
-    { name = "mdit-py-plugins" },
-    { name = "platformdirs", specifier = ">=3.6.0,<5" },
-    { name = "pygments", specifier = ">=2.19.2,<3.0.0" },
-    { name = "rich", specifier = ">=14.2.0" },
-    { name = "tree-sitter", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.25.0" },
-    { name = "tree-sitter-bash", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-css", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-go", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-html", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-java", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-javascript", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-json", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.24.0" },
-    { name = "tree-sitter-markdown", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.3.0" },
-    { name = "tree-sitter-python", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-regex", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.24.0" },
-    { name = "tree-sitter-rust", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.23.0" },
-    { name = "tree-sitter-sql", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.3.11" },
-    { name = "tree-sitter-toml", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.6.0" },
-    { name = "tree-sitter-xml", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.7.0" },
-    { name = "tree-sitter-yaml", marker = "python_full_version >= '3.10' and extra == 'syntax'", specifier = ">=0.6.0" },
-    { name = "typing-extensions", specifier = ">=4.4.0,<5.0.0" },
-]
-provides-extras = ["syntax"]
-
-[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2518,15 +2209,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5e/a7/c202b344c5ca7daf398f3b8a477eeb205cf3b6f32e7ec3a6bac0629ca975/tzdata-2025.3.tar.gz", hash = "sha256:de39c2ca5dc7b0344f2eba86f49d614019d29f060fc4ebc8a417896a620b56a7", size = 196772, upload-time = "2025-12-13T17:45:35.667Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/b0/003792df09decd6849a5e39c28b513c06e84436a54440380862b5aeff25d/tzdata-2025.3-py2.py3-none-any.whl", hash = "sha256:06a47e5700f3081aab02b2e513160914ff0694bce9947d6b76ebd6bf57cfc5d1", size = 348521, upload-time = "2025-12-13T17:45:33.889Z" },
-]
-
-[[package]]
-name = "uc-micro-py"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/78/67/9a363818028526e2d4579334460df777115bdec1bb77c08f9db88f6389f2/uc_micro_py-2.0.0.tar.gz", hash = "sha256:c53691e495c8db60e16ffc4861a35469b0ba0821fe409a8a7a0a71864d33a811", size = 6611, upload-time = "2026-03-01T06:31:27.526Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/73/d21edf5b204d1467e06500080a50f79d49ef2b997c79123a536d4a17d97c/uc_micro_py-2.0.0-py3-none-any.whl", hash = "sha256:3603a3859af53e5a39bc7677713c78ea6589ff188d70f4fee165db88e22b242c", size = 6383, upload-time = "2026-03-01T06:31:26.257Z" },
 ]
 
 [[package]]
