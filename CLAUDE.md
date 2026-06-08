@@ -2,7 +2,8 @@
 
 ## Overview
 MCP server providing 52 tools for natural-language GEOS XML input creation.
-Built on geos-tui (schema/xml), pyResToolbox (fluid PVT), PyVista (mesh/VTK).
+Built on an in-repo schema/XML engine (`src/agents4geos/geos/`, adopted from the
+superseded geos-tui), pyResToolbox (fluid PVT), PyVista (mesh/VTK).
 
 ## Commands
 - `uv sync --all-extras` — install all deps
@@ -18,11 +19,22 @@ Built on geos-tui (schema/xml), pyResToolbox (fluid PVT), PyVista (mesh/VTK).
 - `hooks/` — Auto-validation and auto-screenshot hooks
 - `AGENTS.md` — Agent architecture: taxonomy, tiers, registry, coordination patterns
 
-## Key dependency: geos-tui
-The `geos-tui` Python package (editable install at `../../geos-tui` → `~/geos-tui`) provides the schema parser, XML reader/writer, templates, and validation.
+## Schema/XML engine: `src/agents4geos/geos/`
+The schema parser, XML reader/writer, templates, and validation live **in this
+repo** at `src/agents4geos/geos/{schema,xml,domain}/` — imported as
+`agents4geos.geos.*`. This engine was adopted from the now-superseded geos-tui
+project (provenance in `src/agents4geos/geos/ORIGIN.md`); there is no external
+geos-tui dependency. The repo is self-contained: `uv sync --all-extras` needs no
+sibling repos. pyvista comes from PyPI; pyResToolbox (SI fork) is git-pinned in
+`[tool.uv.sources]` under the `fluids` extra.
 
 ## Schema source
-The GEOS `schema.xsd` is a **GEOS build artifact**, not part of geos-tui. Set `GEOS_SCHEMA=/path/to/GEOS/build/schema.xsd`; on subsequent runs the cached `src/agents4geos/.cache/schema.json` is reused. If `GEOS_SCHEMA` is unset and no cache exists, `get_schema()` raises a `FileNotFoundError` naming both fixes.
+The GEOS `schema.xsd` is a **GEOS build artifact**, not shipped by GEOS itself in
+parsed form. A parsed schema is **bundled** at `src/agents4geos/.cache/schema.json`
+(committed), so `get_schema()` works out of the box with no GEOS build. Set
+`GEOS_SCHEMA=/path/to/GEOS/build/schema.xsd` to override the bundle with a fresh
+parse. Only if the bundled cache is deleted *and* `GEOS_SCHEMA` is unset does
+`get_schema()` raise a `FileNotFoundError` naming both fixes.
 
 
 
