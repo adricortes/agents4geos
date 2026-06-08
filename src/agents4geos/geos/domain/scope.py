@@ -11,7 +11,7 @@ Included) show all schema children without filtering.
 
 from __future__ import annotations
 
-from geos_tui.schema.model import SchemaElement
+from agents4geos.geos.schema.model import SchemaElement
 
 # ── V1 in-scope solvers ──────────────────────────────────────────────────
 

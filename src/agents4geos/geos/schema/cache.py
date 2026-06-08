@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from geos_tui.schema.model import (
+from agents4geos.geos.schema.model import (
     SchemaAttribute,
     SchemaElement,
     SchemaModel,

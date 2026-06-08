@@ -7,7 +7,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from geos_tui.schema.model import (
+from agents4geos.geos.schema.model import (
     SchemaAttribute,
     SchemaElement,
     SchemaModel,

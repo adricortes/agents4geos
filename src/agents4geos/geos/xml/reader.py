@@ -6,8 +6,8 @@ from pathlib import Path
 
 from lxml import etree
 
-from geos_tui.schema.model import SchemaElement, SchemaModel
-from geos_tui.xml.state import DocumentState, ElementState
+from agents4geos.geos.schema.model import SchemaElement, SchemaModel
+from agents4geos.geos.xml.state import DocumentState, ElementState
 
 
 class XMLReader:
