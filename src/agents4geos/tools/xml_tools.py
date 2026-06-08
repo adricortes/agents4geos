@@ -14,10 +14,10 @@ from lxml import etree
 from agents4geos.config import get_schema, ServerConfig
 from agents4geos.server import mcp
 from agents4geos.state.documents import DocumentStore
-from geos_tui.xml.reader import XMLReader
-from geos_tui.xml.writer import XMLWriter
-from geos_tui.xml.state import DocumentState, ElementState
-from geos_tui.domain.templates import build_template_state, TEMPLATES
+from agents4geos.geos.xml.reader import XMLReader
+from agents4geos.geos.xml.writer import XMLWriter
+from agents4geos.geos.xml.state import DocumentState, ElementState
+from agents4geos.geos.domain.templates import build_template_state, TEMPLATES
 from agents4geos.knowledge.cross_refs import ATTRIBUTE_REFERENCES
 from agents4geos.knowledge.sanity_rules import run_sanity_checks
 

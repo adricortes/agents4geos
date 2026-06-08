@@ -87,10 +87,10 @@ Knowledge ─ Domain patterns from 200+ GEOS input files
 
 | Group | Tools | Powered by | Purpose |
 |-------|-------|------------|---------|
-| **Schema & Introspection** | 7 | geos-tui schema parser | Query elements, attributes, types, cross-references |
+| **Schema & Introspection** | 7 | in-repo schema engine | Query elements, attributes, types, cross-references |
 | **Fluid & Constitutive** | 10 | pyResToolbox (SI) | Gas/oil/brine PVT, relperm, cap pressure, well IPR |
 | **Mesh** | 8 | PyVista | Create/load meshes, statistics, screenshots, XML generation |
-| **XML Assembly & Validation** | 14 | geos-tui + xmllint | Create/load/edit/save documents, validate, templates |
+| **XML Assembly & Validation** | 14 | in-repo XML engine + xmllint | Create/load/edit/save documents, validate, templates |
 | **Post-Processing** | 9 | PyVista + pyResToolbox | VTK analysis, field viz, Darcy velocity, material balance |
 | **Preprocessing** | 4 | Knowledge modules | Unit conversion, parameter expansion, include resolution, XML formatting |
 
@@ -108,43 +108,23 @@ For the full tool inventory and agent-tool mappings, see [AGENTS.md §4](AGENTS.
 | **Relative permeability** | BrooksCoreyRelativePermeability, TableRelativePermeability |
 | **Non-solver sections** | Mesh, Events, Outputs, FieldSpecifications, Geometry, Functions |
 
-Poromechanics, geomechanics, acoustic/seismic, and unstructured mesh generation are deferred — see [CLAUDE.md](../../geos-tui/CLAUDE.md) for the full scope definition.
+Poromechanics, geomechanics, acoustic/seismic, and unstructured mesh generation are deferred — see the Supported Physics list above for the v0.1 scope.
 
 ## Quick Start for Evaluators
 
-If you just want to try agents4geos without building GEOS or hand-cloning four
-repositories, use the bootstrap script. It clones the editable dependencies
-(`geos-tui`, `pyResToolbox`, `pyvista`) to the locations that `pyproject.toml`
-expects, then runs `uv sync` and verifies imports.
-
 ```bash
-# 1. Clone agents4geos into a parent directory of your choice
 git clone https://github.com/adricortes/agents4geos.git
 cd agents4geos
-
-# 2. Bootstrap dependencies (clones geos-tui, pyResToolbox, pyvista as siblings)
-bash scripts/install-for-evaluators.sh
+uv sync --all-extras
 ```
 
-The script:
-- requires `git`, `uv` (https://docs.astral.sh/uv/) and Python 3.11+
-- clones each dependency with `--depth 1` into the right relative path
-- skips any dependency that is already cloned
-- runs `uv sync --all-extras`
-- imports each library to confirm the install
-- loads the **bundled GEOS schema** (committed at `src/agents4geos/.cache/schema.json`),
-  so you do **not** need a local GEOS build for evaluation
+That's it — no GEOS build and no sibling repositories are required. The parsed
+GEOS schema is bundled (`src/agents4geos/.cache/schema.json`), and the
+schema/XML engine lives in this repo (`src/agents4geos/geos/`). The `fluids`
+extra pulls `pyResToolbox` (SI fork) from git automatically. Users who later
+build GEOS can set `GEOS_SCHEMA` to override the bundled schema.
 
-After it finishes, register the MCP server with Claude Code — see
-[Installation → Step 3](#3-set-up-a-workspace) below for the `claude mcp add`
-command. Real users who later build GEOS should set `GEOS_SCHEMA` to override
-the bundled schema with their own.
-
-> **Note (2026-05-21):** the editable-path dependencies in `pyproject.toml` are
-> a known onboarding cliff and are tracked for removal in
-> [`agents4geos-cc4`](https://github.com/adricortes/agents4geos), `-nsu`, `-eqn`.
-> This script is the interim path until those deps are published or pinned to
-> git URLs.
+Then register the MCP server — see [Installation → Step 3](#3-set-up-a-workspace).
 
 ## Requirements
 
@@ -152,17 +132,15 @@ the bundled schema with their own.
 - [uv](https://docs.astral.sh/uv/) package manager
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - `xmllint` (for schema validation)
-- GEOS build with `schema.xsd` (for schema parsing)
+- GEOS build with `schema.xsd` — **optional**; a parsed schema is bundled, set `GEOS_SCHEMA` only to override it
 
-### Editable Dependencies
+### Dependencies
 
-These repositories must be available locally:
-
-| Dependency | Path (relative to this repo) | What it provides |
-|------------|------------------------------|------------------|
-| [geos-tui](https://github.com/adricortes/geos-tui) | `../../geos-tui` (`~/geos-tui`) | Schema parser, XML reader/writer, templates, validation |
-| [pyResToolbox](https://github.com/adricortes/pyResToolbox) (SI fork) | `../pyResToolbox` (`~/codes/pyResToolbox`) | Fluid PVT, relative permeability, well performance. Fork of [mwburgoyne/pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) with comprehensive SI unit refactoring. |
-| [PyVista](https://github.com/pyvista/pyvista) | `../pyvista` (`~/codes/pyvista`) | Mesh creation, VTK I/O, headless visualization |
+| Dependency | Source | What it provides |
+|------------|--------|------------------|
+| `agents4geos.geos` (in-repo) | this repo, `src/agents4geos/geos/` | Schema parser, XML reader/writer, templates, validation (adopted from the superseded geos-tui) |
+| [pyResToolbox](https://github.com/adricortes/pyResToolbox) (SI fork) | git pin (`fluids` extra) | Fluid PVT, relative permeability, well performance. Fork of [mwburgoyne/pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) with comprehensive SI unit refactoring. |
+| [PyVista](https://github.com/pyvista/pyvista) | PyPI `pyvista>=0.43` | Mesh creation, VTK I/O, headless visualization |
 
 ## Installation
 
@@ -178,7 +156,7 @@ uv sync --all-extras
 ### 2. Verify dependencies
 
 ```bash
-uv run python -c "from geos_tui.schema.parser import SchemaParser; print('geos-tui OK')"
+uv run python -c "from agents4geos.config import get_schema; print('schema engine OK —', len(get_schema().elements), 'elements')"
 uv run python -c "from pyrestoolbox import gas; print('pyResToolbox OK')"
 uv run python -c "import pyvista as pv; print('PyVista OK')"
 ```
@@ -191,19 +169,18 @@ Create a separate directory for testing/using the agent:
 mkdir -p ~/codes/agents4geos-workspace
 cd ~/codes/agents4geos-workspace
 
-# Symlink your GEOS build
-ln -s /path/to/GEOS geos
-
 # Deploy slash commands
 mkdir -p .claude/commands
 cp ~/codes/agents4geos/skills/*.md .claude/commands/
 
-# Register the MCP server
+# Register the MCP server (uses the bundled schema by default)
 claude mcp add agents4geos -- \
-  env GEOS_SCHEMA=$(pwd)/geos/build/schema.xsd \
   uv run --directory ~/codes/agents4geos \
   python -m agents4geos
 ```
+
+To use your own GEOS build's schema instead of the bundled one, add
+`env GEOS_SCHEMA=/path/to/GEOS/build/schema.xsd` before `uv run` above.
 
 ### 4. Auto-approve MCP tools (optional)
 

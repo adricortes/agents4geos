@@ -259,7 +259,7 @@ def resolve_includes(doc_id: str) -> dict:
 
 def _merge_lxml_into_doc(doc_root, lxml_root, schema, insert_only: set) -> int:
     """Merge elements from an lxml tree into the DocumentState tree."""
-    from geos_tui.xml.state import ElementState
+    from agents4geos.geos.xml.state import ElementState
 
     count = 0
     for lxml_section in lxml_root:

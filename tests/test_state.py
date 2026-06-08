@@ -1,7 +1,7 @@
 """Tests for DocumentStore and schema loader."""
 from agents4geos.state.documents import DocumentStore
 from agents4geos.config import get_schema
-from geos_tui.xml.state import DocumentState, ElementState
+from agents4geos.geos.xml.state import DocumentState, ElementState
 
 
 def test_create_and_get(schema):

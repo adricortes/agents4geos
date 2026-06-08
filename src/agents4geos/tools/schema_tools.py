@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from agents4geos.config import get_schema
 from agents4geos.server import mcp
-from geos_tui.domain.scope import filter_elements_for_section
-from geos_tui.domain.descriptions import get_description
-from geos_tui.domain.curation import get_field_groups
+from agents4geos.geos.domain.scope import filter_elements_for_section
+from agents4geos.geos.domain.descriptions import get_description
+from agents4geos.geos.domain.curation import get_field_groups
 from agents4geos.knowledge.field_names import get_field_names
 from agents4geos.knowledge import cross_refs as xref_module
 

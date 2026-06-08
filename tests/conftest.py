@@ -2,7 +2,7 @@
 from __future__ import annotations
 from pathlib import Path
 import pytest
-from geos_tui.schema.model import SchemaModel
+from agents4geos.geos.schema.model import SchemaModel
 
 from agents4geos.config import get_schema
 
