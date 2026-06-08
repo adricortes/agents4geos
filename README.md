@@ -258,6 +258,11 @@ agents4geos/
 ├── src/agents4geos/
 │   ├── server.py              # FastMCP server entry point
 │   ├── config.py              # Schema path resolution
+│   ├── geos/                  # In-repo schema/XML engine (adopted from geos-tui)
+│   │   ├── schema/            # XSD parser, model, cache
+│   │   ├── xml/               # XML reader/writer, document state
+│   │   └── domain/            # Curation, descriptions, scope, templates
+│   ├── .cache/schema.json     # Bundled parsed GEOS schema (no GEOS build needed)
 │   ├── tools/                 # 6 tool modules (52 tools total)
 │   │   ├── schema_tools.py    # Schema introspection (7)
 │   │   ├── fluid_tools.py     # Fluid PVT + constitutive (10)
@@ -274,7 +279,7 @@ agents4geos/
 │       └── fluid_models.py    # NL → constitutive assembly mapping
 ├── skills/                    # Claude Code slash commands (11 .md files)
 ├── hooks/                     # Auto-validation + auto-screenshot hooks
-├── tests/                     # 49 tests (schema, fluid, mesh, XML, postproc, integration)
+├── tests/                     # 191 tests (schema, fluid, mesh, XML, postproc, integration)
 └── examples/                  # Example conversation transcripts
 ```
 
