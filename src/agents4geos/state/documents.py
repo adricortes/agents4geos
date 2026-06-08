@@ -1,7 +1,7 @@
 """In-memory document store for stateful XML assembly."""
 from __future__ import annotations
 import uuid
-from geos_tui.xml.state import DocumentState
+from agents4geos.geos.xml.state import DocumentState
 
 
 class DocumentStore:

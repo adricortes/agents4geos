@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from geos_tui.schema.model import SchemaElement, SchemaModel
-from geos_tui.xml.state import DocumentState, ElementState
+from agents4geos.geos.schema.model import SchemaElement, SchemaModel
+from agents4geos.geos.xml.state import DocumentState, ElementState
 
 TEMPLATES: dict[str, dict] = {
     "single_phase_flow": {

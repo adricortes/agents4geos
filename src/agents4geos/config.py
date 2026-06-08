@@ -4,9 +4,9 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from geos_tui.schema.parser import SchemaParser
-from geos_tui.schema.model import SchemaModel
-from geos_tui.schema.cache import SchemaCache
+from agents4geos.geos.schema.parser import SchemaParser
+from agents4geos.geos.schema.model import SchemaModel
+from agents4geos.geos.schema.cache import SchemaCache
 
 def _default_schema_path() -> Path | None:
     env = os.environ.get("GEOS_SCHEMA")

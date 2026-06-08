@@ -6,7 +6,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from geos_tui.xml.state import DocumentState, ElementState
+from agents4geos.geos.xml.state import DocumentState, ElementState
 
 
 class XMLWriter:
