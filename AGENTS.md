@@ -128,7 +128,8 @@ Three tiers based on cognitive complexity:
 
 ## 4. Tool Inventory
 
-51 MCP tools + `health_check`, grouped by domain.
+52 MCP tools, grouped by domain — 51 across the 6 tool modules plus
+`health_check` (defined in `server.py`).
 
 ### Schema & Introspection (7 tools)
 
