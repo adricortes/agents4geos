@@ -8,7 +8,6 @@ dependencies = [
     "lxml>=5.0",
     "pyvista>=0.43",
     "numpy>=1.24",
-    "geos-tui",
 ]
 
 [project.optional-dependencies]
@@ -30,9 +29,7 @@ build-backend = "hatchling.build"
 packages = ["src/agents4geos"]
 
 [tool.uv.sources]
-pyrestoolbox = { path = "../pyResToolbox", editable = true }
-pyvista = { path = "../pyvista", editable = true }
-geos-tui = { path = "../../geos-tui", editable = true }
+pyrestoolbox = { git = "https://github.com/adricortes/pyResToolbox.git", rev = "bad0208" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
