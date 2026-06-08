@@ -124,6 +124,24 @@ schema/XML engine lives in this repo (`src/agents4geos/geos/`). The `fluids`
 extra pulls `pyResToolbox` (SI fork) from git automatically. Users who later
 build GEOS can set `GEOS_SCHEMA` to override the bundled schema.
 
+### Private dependency access (one-time)
+
+The `fluids` extra fetches `pyResToolbox` from a **private** repo over `https`.
+`uv sync` shells out to `git`, which needs an https credential — an SSH key
+alone is not enough and you'll see `could not read Username for
+'https://github.com'`. Configure auth **once** with either approach:
+
+```bash
+# Option A (recommended): GitHub CLI credential helper
+gh auth login        # if not already logged in
+gh auth setup-git    # makes git use your gh token for https
+
+# Option B: rewrite adricortes https URLs to SSH (uses your SSH key)
+git config --global url."git@github.com:adricortes/".insteadOf "https://github.com/adricortes/"
+```
+
+Then `uv sync --all-extras` succeeds.
+
 Then register the MCP server — see [Installation → Step 3](#3-set-up-a-workspace).
 
 ## Requirements
