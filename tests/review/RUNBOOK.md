@@ -143,8 +143,25 @@ intent) → `advisory` (orchestrator asks). The `ReviewFinding` contract is
 unchanged (still error/warning/advisory); only the reviewer's assignment guidance
 changed.
 
-**Baseline complete** for the three seeded defects (intent/physics/xref all
-caught) + the severity policy/rubric. Remaining: the `good_single_phase` `[]`
-control (being run in a fresh, cleared session) and a real `/geos` end-to-end
-through Stage R (Task 8). Optionally re-run `broken_materiallist_ref` to confirm it
-now grades `error`.
+**Negative control — `good_single_phase`: `[]` (run in a fresh, cleared session).**
+The reviewer returned an empty findings array with no false positives, confirming
+intent by unit conversion (`maxTime=3.15e7 s ≈ 1 yr`, `timeFrequency=2.628e6 s ≈
+1 mo`, 100 m cube, water density/viscosity) rather than trusting attribute names.
+Ran isolated (~5 tool calls, ~9k tokens) — verdict independent of how the deck was
+authored. This is the no-cry-wolf control, and it was only meaningful once the base
+deck was made intent-faithful.
+
+**BASELINE COMPLETE (2026-06-09).** Live, MCP-registered session results:
+| case | expected | result |
+|------|----------|--------|
+| MCP-access gate (probe subagent) | tools + shared store reachable | PASS |
+| `duration_mismatch` | intent caught | PASS (`error`/intent, intent_mismatch) |
+| `negative_pressure` | physics caught | PASS (`advisory`/physics, ×2 models) |
+| `broken_materiallist_ref` | xref caught | PASS (xref + actionable fix; now `error`) |
+| `good_single_phase` | `[]` | PASS (fresh session, no false positives) |
+
+Decisions made during eval: physics stays `advisory` and the orchestrator asks the
+user (may be a deliberate experiment); severity rubric grades by certainty-of-wrong
++ auto-fix safety (won't-init/contradicts-intent → `error`). Only remaining
+verification: a real `/geos` build end-to-end through Stage R (Task 8) — exercised
+naturally on the next deck creation.
