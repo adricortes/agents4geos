@@ -24,6 +24,11 @@ Five entity types make up the system:
 **Key distinction:** Tools do work, knowledge encodes domain expertise, agents make
 decisions about what work to do and in what order.
 
+**Note (2026-06-09):** Agents now come in two forms — *prompt-overlay skills*
+(`skills/geos:*.md`, loaded into the main conversation, same context/model) and
+*real subagents* (`.claude/agents/*.md`, dispatched via the Agent tool with their
+own context and `model:`). `geos-reviewer` is the first real subagent.
+
 ---
 
 ## 2. Capability Tiers & Model Routing
@@ -123,6 +128,23 @@ Three tiers based on cognitive complexity:
 - *Knowledge:* `lessons_learned.md`
 - *Inputs:* Error log directory
 - *Outputs:* Curated JSONL + updated lessons learned
+
+**`geos-reviewer`** (Independent Reviewer subagent) — Tier 3
+- *Description:* Fresh-context independent review of a built deck — schema,
+  cross-refs, physics realism, and fidelity to the user's stated intent.
+  Dispatched automatically by `geos` before save; NOT user-invocable.
+- *Type:* Real Claude Code subagent (`.claude/agents/geos-reviewer.md`,
+  `model: opus`), dispatched via the Agent tool — not a slash-command skill.
+- *Tools:* read/validate MCP tools only (`validate_xml`, `load_xml`,
+  `validate_cross_references`, `sanity_check`, `describe_element`,
+  `lookup_field_names`, `get_cross_references`) + `Read`. No deck-editing tools —
+  it judges, it does not mutate.
+- *Knowledge:* `sanity_rules`, `cross_refs`, `field_names` (indirectly via tools)
+- *Inputs:* artifact (preview path + doc_id) + the user's original request verbatim
+- *Outputs:* structured findings JSON
+  (severity/category/location/issue/suggested_fix/intent_mismatch)
+- *Coordination:* feedback loop — `geos` builds → `geos-reviewer` reviews → `geos`
+  fixes → re-review, bounded at 3 iterations
 
 ---
 
@@ -263,6 +285,10 @@ Useful when subtasks have no shared state.
 
 Agent A produces output → Agent B reviews it → if issues found, Agent A is re-invoked
 with the review feedback. Bounded by a max-iteration count to prevent infinite cycles.
+
+*Current example (2026-06-09):* `geos` builds a deck → `geos-reviewer`
+independently reviews it (fresh context) → if blocking findings, `geos` fixes and
+re-dispatches a fresh reviewer, bounded at 3 iterations.
 
 *Anticipated example:* PDF reader extracts a table → Reviewer flags inconsistencies → PDF reader re-extracts with corrective instructions → Reviewer approves.
 
