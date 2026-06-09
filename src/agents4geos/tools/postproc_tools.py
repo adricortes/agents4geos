@@ -232,7 +232,7 @@ def sanity_check(doc_id: str) -> dict:
     if doc is None:
         return {"error": f"Document '{doc_id}' not found"}
 
-    all_attrs: dict[str, str] = {}
+    all_attrs: list[tuple[str, str]] = []
     _collect_all_attrs(doc.root, all_attrs)
     checks = run_sanity_checks(all_attrs)
     structural = check_document_structure(doc.root)
@@ -242,7 +242,7 @@ def sanity_check(doc_id: str) -> dict:
     from agents4geos.knowledge.unit_conventions import validate_unit_expression
     from agents4geos.knowledge.preprocessing_rules import SPECIAL_CHARACTERS
     import re
-    for attr_name, attr_value in all_attrs.items():
+    for attr_name, attr_value in all_attrs:
         # Check bracket notation uses valid units
         if "[" in attr_value and "]" in attr_value:
             unit_result = validate_unit_expression(attr_value)
@@ -278,7 +278,14 @@ def sanity_check(doc_id: str) -> dict:
     }
 
 
-def _collect_all_attrs(el, attrs: dict) -> None:
-    attrs.update(el.attributes)
+def _collect_all_attrs(el, pairs: list) -> None:
+    """Append every (attribute_name, value) on this element and its descendants.
+
+    Collects a list of pairs (not a name-keyed dict) so identically-named
+    attributes on different elements are preserved rather than overwriting
+    each other.
+    """
+    for name, value in el.attributes.items():
+        pairs.append((name, value))
     for child in el.children:
-        _collect_all_attrs(child, attrs)
+        _collect_all_attrs(child, pairs)

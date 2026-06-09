@@ -74,28 +74,54 @@ STRUCTURAL_RULES: list[dict] = [
 ]
 
 
-def run_sanity_checks(attributes: dict[str, str]) -> list[dict]:
-    """Run physics sanity checks on attribute values.
+def _parse_numeric_values(raw: str) -> list[float]:
+    """Parse a GEOS attribute value into the numbers it contains.
+
+    Handles scalars ("1e-16") and flat GEOS list literals ("{ 1e-16, 1e-16 }").
+    Non-numeric tokens (units, expressions, names) are skipped; an all-non-numeric
+    value yields an empty list so the caller can skip it.
+    """
+    s = raw.strip()
+    if s.startswith("{") and s.endswith("}"):
+        tokens = s[1:-1].split(",")
+    else:
+        tokens = [s]
+    values: list[float] = []
+    for tok in tokens:
+        try:
+            values.append(float(tok.strip()))
+        except (ValueError, TypeError):
+            pass
+    return values
+
+
+def run_sanity_checks(attributes: list[tuple[str, str]]) -> list[dict]:
+    """Run physics sanity checks on (attribute_name, value) pairs.
+
+    Takes a list of pairs rather than a dict so that identically-named attributes
+    on different elements (e.g. two `referencePressure`) are each evaluated instead
+    of colliding. The rule pattern is matched case-insensitively, and GEOS list
+    literals ("{ a, b, c }") are checked component-wise.
 
     Returns list of {name, attribute, value, status, message}.
     """
     results = []
     for rule in SANITY_RULES:
-        pattern = rule["attribute_pattern"]
-        matching = {k: v for k, v in attributes.items() if pattern in k.lower()}
-        for attr_name, attr_value in matching.items():
-            try:
-                value = float(attr_value)
-                passed = rule["min"] <= value <= rule["max"]
-                results.append({
-                    "name": rule["name"],
-                    "attribute": attr_name,
-                    "value": value,
-                    "status": "pass" if passed else "fail",
-                    "message": "OK" if passed else rule["message"],
-                })
-            except (ValueError, TypeError):
-                pass  # Non-numeric or expression — skip
+        pattern = rule["attribute_pattern"].lower()
+        for attr_name, attr_value in attributes:
+            if pattern not in attr_name.lower():
+                continue
+            values = _parse_numeric_values(attr_value)
+            if not values:
+                continue  # Non-numeric or expression — skip
+            bad = [v for v in values if not (rule["min"] <= v <= rule["max"])]
+            results.append({
+                "name": rule["name"],
+                "attribute": attr_name,
+                "value": values[0] if len(values) == 1 else values,
+                "status": "fail" if bad else "pass",
+                "message": "OK" if not bad else rule["message"],
+            })
     return results
 
 
