@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Problem>
+  <Solvers>
+    <SinglePhaseFVM name="singlePhaseFlow" discretization="fluidTPFA" targetRegions="{ region }"/>
+  </Solvers>
+  <Mesh>
+    <InternalMesh name="mesh" elementTypes="{ C3D8 }" xCoords="{ 0, 100 }" yCoords="{ 0, 100 }" zCoords="{ 0, 100 }" nx="{ 10 }" ny="{ 10 }" nz="{ 10 }" cellBlockNames="{ block }"/>
+  </Mesh>
+  <Constitutive>
+    <CompressibleSinglePhaseFluid name="fluid" defaultDensity="1000" defaultViscosity="0.001" referencePressure="0.0" compressibility="5e-10" viscosibility="0.0"/>
+    <CompressibleSolidConstantPermeability name="rock" solidModelName="nullSolid" porosityModelName="rockPorosity" permeabilityModelName="rockPerm"/>
+    <NullModel name="nullSolid"/>
+    <PressurePorosity name="rockPorosity" defaultReferencePorosity="0.05" referencePressure="0.0" compressibility="1.0e-9"/>
+    <ConstantPermeability name="rockPerm" permeabilityComponents="{ 1e-16, 1e-16, 1e-16 }"/>
+  </Constitutive>
+  <ElementRegions>
+    <CellElementRegion name="region" cellBlocks="{ * }" materialList="{ fluid, rock }"/>
+  </ElementRegions>
+  <Events maxTime="2.628e6">
+    <PeriodicEvent name="solverApp" forceDt="1e3" target="/Solvers/singlePhaseFlow"/>
+    <PeriodicEvent name="output" timeFrequency="2.628e6" target="/Outputs/vtkOutput"/>
+  </Events>
+  <NumericalMethods>
+    <FiniteVolume>
+      <TwoPointFluxApproximation name="fluidTPFA"/>
+    </FiniteVolume>
+  </NumericalMethods>
+  <Outputs>
+    <VTK name="vtkOutput"/>
+  </Outputs>
+</Problem>
