@@ -1,0 +1,24 @@
+{
+  "intent": "single-phase water flow on a 100 m cube, run for 1 year with VTK output monthly",
+  "cases": [
+    {
+      "name": "negative_pressure",
+      "mutation": "Set the Constitutive referencePressure attributes to -100 (negative; below the 0 Pa floor). Caught by sanity_check's pressure_positive rule.",
+      "note": "Plan originally specified perm_out_of_range, but sanity_check cannot parse the GEOS list literal in permeabilityComponents (it float()s the value), so an out-of-range permeability is NOT tool-catchable in this codebase. Negative reference pressure is a scalar the rule does parse, so it is a genuinely tool-catchable physics defect. See tests/review/RUNBOOK.md and agents4geos sanity-rule notes.",
+      "expect_category": "physics",
+      "tool_catchable": true
+    },
+    {
+      "name": "broken_materiallist_ref",
+      "mutation": "Change one name in an ElementRegion materialList to a constitutive model name that does not exist (e.g. 'nonexistentRock').",
+      "expect_category": "xref",
+      "tool_catchable": true
+    },
+    {
+      "name": "duration_mismatch",
+      "mutation": "Set Events maxTime to 2.6e6 (about 1 month) while the intent says 1 year. Deck stays schema-valid.",
+      "expect_category": "intent",
+      "tool_catchable": false
+    }
+  ]
+}
