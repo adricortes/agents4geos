@@ -191,6 +191,10 @@ cd ~/codes/agents4geos-workspace
 mkdir -p .claude/commands
 cp ~/codes/agents4geos/skills/*.md .claude/commands/
 
+# Deploy subagents (e.g. geos-reviewer, dispatched automatically by /geos)
+mkdir -p .claude/agents
+cp ~/codes/agents4geos/.claude/agents/*.md .claude/agents/
+
 # Register the MCP server (uses the bundled schema by default)
 claude mcp add agents4geos -- \
   uv run --directory ~/codes/agents4geos \
