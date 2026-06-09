@@ -68,17 +68,27 @@ so reviewer-instruction changes can be compared over time.
 
 ## Results log
 
-### 2026-06-09 — baseline: PENDING (could not run in build session)
-The implementing session was a headless background job WITHOUT the `agents4geos`
-MCP server registered and WITHOUT the `geos-reviewer` subagent loaded into the
-agent registry, so the live agent-run eval could not be executed. The
-deterministic substrate it depends on IS verified (see
-`tests/review/test_fixtures.py`, all green): the catchable defects are caught by
-the tools and the intent defect passes through clean. The remaining unknown is
-purely the LLM reviewer's intent-recall, which must be scored in a real
-`/geos`-capable session.
+### 2026-06-09 — Task 1 hard gate: PASSED (live); intent-recall: PENDING
+Run from `/home/adriano/codes/agents4geos-workspace` with the `agents4geos` MCP
+server registered (GEOS_SCHEMA → the compiled `/home/adriano/geos-stack/GEOS/build/schema.xsd`,
+reached via the workspace `geos` symlink), against
+`fixtures/review/broken_materiallist_ref.xml`.
 
-**To close this baseline:** run the Procedure above in a session with the MCP
-server registered, then replace this block with per-case caught/missed results.
-Expected easy wins: `negative_pressure` (physics), `broken_materiallist_ref`
-(xref). The bar to watch: `duration_mismatch` caught with `intent_mismatch: true`.
+**MCP-access gate (Task 1) — PASSED.** A throwaway `geos-mcp-probe` subagent
+(haiku) dispatched via the Agent tool successfully called all three MCP tools
+from its own context:
+- `describe_element("SinglePhaseFVM")` → full attribute set returned
+  (`described_ok: true`).
+- `load_xml(...)` → `doc_id: doc_c4d2999a`, 21 elements, `unknown_elements: 0`
+  (deck parses cleanly against the live compiled schema).
+- `validate_cross_references(doc_id)` → flagged
+  `'nonexistentRock' not found in Constitutive`.
+The doc loaded in one tool call persisted for the next call within the subagent's
+MCP session — confirming the shared module-level `DocumentStore` is reachable
+across a dispatched subagent's tool calls. **The design's data flow is valid; the
+file-only fallback is NOT needed.**
+
+**Intent-recall (Task 5 / Task 8) — PENDING.** Still to score: dispatch the real
+`geos-reviewer` on each fixture with the manifest intent and confirm
+`duration_mismatch` is caught with `intent_mismatch: true` (the case the
+deterministic tools provably miss). Append per-case caught/missed here when run.
