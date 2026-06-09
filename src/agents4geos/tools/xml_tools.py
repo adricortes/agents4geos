@@ -19,7 +19,6 @@ from agents4geos.geos.xml.writer import XMLWriter
 from agents4geos.geos.xml.state import DocumentState, ElementState
 from agents4geos.geos.domain.templates import build_template_state, TEMPLATES
 from agents4geos.knowledge.cross_refs import ATTRIBUTE_REFERENCES
-from agents4geos.knowledge.sanity_rules import run_sanity_checks
 
 _store = DocumentStore()
 
