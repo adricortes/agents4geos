@@ -106,6 +106,23 @@ cells, `maxTime=3.15e7`, output `timeFrequency=2.628e6`). Each defect deck is no
 a single attributable deviation from that base; `good_single_phase.xml` is
 xref-clean and sanity-clean and should now elicit no blocking findings.
 
-**Still to score (optional, against the refined fixtures):** `negative_pressure`
-→ expect one `physics` finding; `broken_materiallist_ref` → expect one `xref`
-finding; `good_single_phase` → expect `[]` (advisory-only at most).
+**Intent-recall — `negative_pressure`: CAUGHT.** The reviewer flagged the negative
+`referencePressure` as `category: physics` in BOTH constitutive models it was
+planted in (`CompressibleSinglePhaseFluid` + `PressurePorosity`), all
+`intent_mismatch: false`, and correctly judged geometry/duration/output as
+faithful (output cadence accepted as ~monthly, no false positive). Confirms the
+four axes (schema/xref/physics/intent) are independent and the faithful base is a
+clean control.
+
+**Policy decision (2026-06-09): physics stays advisory; orchestrator asks.** The
+reviewer grades physics as `advisory` (non-blocking) by design — physics is
+heuristic and a "violation" may be a deliberate experiment/stress test. So Stage R
+does NOT auto-fix physics and does NOT silently save: it surfaces each physics
+advisory with a recommended fix and asks the user whether to fix or keep
+(`skills/geos.md` Stage R step 5). Only schema `error` / xref `warning` (and
+`intent` mismatches against the verbatim request) drive the auto-fix loop.
+
+**Still to score (optional, against the refined fixtures):** `broken_materiallist_ref`
+→ expect one `xref` finding (high confidence — Test A already showed the tool
+catches `nonexistentRock`); `good_single_phase` → expect `[]` (advisory-only at
+most).
