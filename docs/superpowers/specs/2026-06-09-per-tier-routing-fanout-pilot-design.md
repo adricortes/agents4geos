@@ -62,8 +62,18 @@ blocked by a subagent failure.
   `mcp__agents4geos__compute_oil_properties`,
   `mcp__agents4geos__compute_brine_properties`,
   `mcp__agents4geos__generate_pvt_table`.
-- **Input:** a fluid spec — type/components, temperature, pressure, salinity (e.g.
-  "CO2 + brine at 50 °C, 15 MPa, 100 g/L NaCl"; or "single-phase water").
+- **Input:** a fluid spec — the **catalog category** chosen by the orchestrator
+  (e.g. "CO₂-brine", "single-phase flow", "black oil") plus conditions
+  (type/components, temperature, pressure, salinity, e.g. "CO2 + brine at 50 °C,
+  15 MPa, 100 g/L NaCl").
+- **Knowledge:** the subagent `Read`s the per-family detail file
+  `src/agents4geos/knowledge/examples/<category>.md` for that category. Those files
+  carry the `## Decision rule (stage 2)` for sibling **variants** (e.g. CO₂-brine
+  Phillips vs. Ezrokhi by salinity) and the constitutive **assembly specifics**
+  (`phasePVTParaFiles`, black-oil PVT tables, etc.). The subagent does NOT consult
+  the router `example_catalog.md` — category selection (the Tier-3 intent decision)
+  stays with the orchestrator's Stage 0; the subagent picks the **variant** within
+  the chosen category and computes its parameters (Tier-2 synthesis).
 - **Output:** a `FluidResult` JSON object (contract below). No prose.
 - **Boundary:** `FluidResult` covers the **fluid-phase constitutive model(s)** and
   any PVT tables — the part `geos:fluids` is responsible for. The non-fluid solid
@@ -130,8 +140,10 @@ intent parsing / catalog routing and before validation:
    computation or a generated/resized mesh, not a trivial template tweak — enter
    Stage C. Otherwise stay inline (the C-tuning: don't fan out for nothing).
 2. **Fan out.** Dispatch `geos-mesh` and `geos-fluids` **in the same turn** (two
-   Agent-tool calls) so they run concurrently. Pass each its spec, verbatim from
-   the user's intent.
+   Agent-tool calls) so they run concurrently. Pass each its spec from the user's
+   intent — to `geos-fluids`, include the **catalog category** already chosen by
+   Stage 0 (so it reads the right `knowledge/examples/<category>.md` and picks the
+   variant); to `geos-mesh`, the geometry/resolution.
 3. **Validate.** Parse each returned JSON via `parse_mesh_result` /
    `parse_fluid_result`. On parse failure or subagent error for an axis, **fall
    back to inline** computation for that axis (partial failure is fine — apply the
