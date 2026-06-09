@@ -122,7 +122,29 @@ advisory with a recommended fix and asks the user whether to fix or keep
 (`skills/geos.md` Stage R step 5). Only schema `error` / xref `warning` (and
 `intent` mismatches against the verbatim request) drive the auto-fix loop.
 
-**Still to score (optional, against the refined fixtures):** `broken_materiallist_ref`
-→ expect one `xref` finding (high confidence — Test A already showed the tool
-catches `nonexistentRock`); `good_single_phase` → expect `[]` (advisory-only at
-most).
+**Intent-recall — `broken_materiallist_ref`: CAUGHT.** The reviewer flagged the
+dangling `materialList` ref (`category: xref`), identified the real model name
+(`rock`), and proposed the concrete fix `{ fluid, rock }` — adding the
+human-actionable "what should it have been?" layer on top of the tool's raw
+"is there a dangling ref?". It also noted a subtle bonus (the 12th/year-end VTK
+output may not land cleanly at `maxTime`).
+
+**Severity-rubric refinement (2026-06-09).** Across the three reviews the labels
+were inconsistent: a dangling xref (fatal at GEOS init) was graded `warning` while
+a wrong-but-runnable duration was graded `error` — i.e. a deck that won't
+initialize scored softer than one that runs but answers the wrong question. Gate
+*behavior* was unaffected (error+warning both block; advisory asks), but the labels
+were backwards for honest reporting / any future error-only policy. Fixed the
+reviewer's severity rubric in `.claude/agents/geos-reviewer.md`: severity now grades
+"how certain the deck is wrong + is it safe to auto-fix" (category carries the
+kind). A dangling cross-ref or anything that won't load/init → `error`; likely
+wrong at runtime → `warning`; heuristic/possibly-intentional (physics, minor
+intent) → `advisory` (orchestrator asks). The `ReviewFinding` contract is
+unchanged (still error/warning/advisory); only the reviewer's assignment guidance
+changed.
+
+**Baseline complete** for the three seeded defects (intent/physics/xref all
+caught) + the severity policy/rubric. Remaining: the `good_single_phase` `[]`
+control (being run in a fresh, cleared session) and a real `/geos` end-to-end
+through Stage R (Task 8). Optionally re-run `broken_materiallist_ref` to confirm it
+now grades `error`.

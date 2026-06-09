@@ -45,9 +45,23 @@ Return a JSON array (and nothing else). Each element:
   "suggested_fix": "<concrete remedy, e.g. set maxTime=3.15e7 (1 year in s)>",
   "intent_mismatch": true | false
 }
-Severity rules: `error` = schema violation (GEOS won't load). `warning` = broken
-cross-ref / runtime crash. `advisory` = sanity/physics concern OR a minor intent
-gap. If the deck is correct and faithful, return `[]`.
+Severity rules — grade by how certain the deck is wrong and whether it is safe to
+auto-fix (the `category` field already says WHAT kind of wrong it is):
+- `error` (blocking): the deck is unusable as-is and must be fixed — it will not
+  load or initialize (a schema violation, OR a dangling cross-reference that aborts
+  GEOS at initialization), OR it directly contradicts an explicit, unambiguous
+  quantitative request from the user (e.g. the user asked for 1 year and the deck
+  runs 1 month).
+- `warning` (blocking): the deck probably loads but is likely wrong at runtime — a
+  cross-reference that resolves to a suspicious/likely-wrong target, or a config
+  likely to crash mid-run.
+- `advisory` (non-blocking — the orchestrator surfaces it and ASKS the user; it is
+  NOT auto-fixed): a heuristic concern that MAY be intentional — a physics/sanity
+  flag (a negative or out-of-range value could be a deliberate experiment), or a
+  minor/ambiguous intent gap.
+A dangling cross-reference (one `validate_cross_references` reports as not found)
+is fatal at init — grade it `error`, not `warning`. If the deck is correct and
+faithful, return `[]`.
 
 Do NOT write prose, explanations, or summaries. Do NOT edit the deck — you have no
 editing tools. Return the JSON array only.
