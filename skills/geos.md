@@ -130,7 +130,8 @@ remove_element(doc_id, element_path)
      Phillips → Ezrokhi, 2-phase → 3-phase): follow the catalog's
      "Sibling variants" or "Decision rule" guidance — usually a single
      element-type swap + materialList adjustment.
-   - `validate_cross_references` → `sanity_check` → `preview_xml` → `save_xml`.
+   - `validate_cross_references` → `sanity_check` → `preview_xml` → **Stage R
+     (Independent Review Gate, see below)** → `save_xml`.
    - If the catalog flagged a knowledge-module coverage ⚠️ for the chosen
      starter, warn the user briefly: "Note: this fluid family's sanity rules are
      still being wired up — validation may not catch all physics constraints."
@@ -140,6 +141,43 @@ remove_element(doc_id, element_path)
 4. **For questions**: Use schema tools. For "what physics / which solver" questions,
    the catalog router (Stage 0) is often the better answer than raw schema
    introspection — it speaks user-intent vocabulary, the schema speaks XSD.
+
+## Stage R — Independent Review Gate (creation flow, before save_xml)
+
+After the deck is assembled and previewed, BEFORE `save_xml` and before presenting
+to the user, run an independent review. The reviewer runs in a FRESH context — it
+knows only the artifact and the user's words, not how you built the deck. That
+independence is the point; do not try to explain your choices to it.
+
+1. Ensure a current preview exists (`preview_xml(doc_id)` → path) and you know the
+   `doc_id`.
+2. Dispatch the `geos-reviewer` subagent (Agent tool) with:
+   - the preview file absolute path AND the `doc_id`,
+   - the user's ORIGINAL request, VERBATIM (do not paraphrase — the reviewer
+     judges intent fidelity against the user's exact words),
+   - the workspace absolute path so it can resolve files.
+3. It returns a JSON array of findings
+   (severity/category/location/issue/suggested_fix/intent_mismatch).
+4. **Fix loop (max 3 iterations):**
+   - If any finding has severity `error` or `warning` (blocking): fix each via
+     `update_element`/`add_element`/`add_child`/`remove_element`, then
+     `preview_xml` again and dispatch a FRESH `geos-reviewer`.
+   - Stop when no blocking findings remain, or after 3 iterations.
+5. **On no blocking findings:** before `save_xml`, handle remaining `advisory`
+   findings by category:
+   - **`physics` advisories** (e.g. negative pressure, permeability/porosity out
+     of range, extreme temperature): do NOT auto-fix and do NOT silently save.
+     Unusual physics may be exactly what the user wants — a deliberate experiment,
+     stress test, or sensitivity study — and the user's intent is authoritative.
+     Surface each one clearly, say which you think is a likely mistake and the
+     suggested fix (give them a default), then ASK whether to fix it or keep it as
+     intended. Apply only the fixes the user approves, then `save_xml`.
+   - **other advisories** (minor intent gaps, style): `save_xml`, then briefly
+     mention them when presenting.
+6. **On non-convergence (still blocking after 3 iterations):** do NOT hide it.
+   Save the best version, present it, and tell the user honestly: "My independent
+   reviewer still flags these issues I could not fully resolve: <list them>."
+   NEVER silently present a deck the reviewer rejected.
 
 ## CRITICAL: Template vs Add/Update Rules
 
