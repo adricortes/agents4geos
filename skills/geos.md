@@ -163,8 +163,17 @@ independence is the point; do not try to explain your choices to it.
      `update_element`/`add_element`/`add_child`/`remove_element`, then
      `preview_xml` again and dispatch a FRESH `geos-reviewer`.
    - Stop when no blocking findings remain, or after 3 iterations.
-5. **On clean:** `save_xml`, then present the deck. Briefly mention any remaining
-   `advisory` findings.
+5. **On no blocking findings:** before `save_xml`, handle remaining `advisory`
+   findings by category:
+   - **`physics` advisories** (e.g. negative pressure, permeability/porosity out
+     of range, extreme temperature): do NOT auto-fix and do NOT silently save.
+     Unusual physics may be exactly what the user wants — a deliberate experiment,
+     stress test, or sensitivity study — and the user's intent is authoritative.
+     Surface each one clearly, say which you think is a likely mistake and the
+     suggested fix (give them a default), then ASK whether to fix it or keep it as
+     intended. Apply only the fixes the user approves, then `save_xml`.
+   - **other advisories** (minor intent gaps, style): `save_xml`, then briefly
+     mention them when presenting.
 6. **On non-convergence (still blocking after 3 iterations):** do NOT hide it.
    Save the best version, present it, and tell the user honestly: "My independent
    reviewer still flags these issues I could not fully resolve: <list them>."
