@@ -119,8 +119,9 @@ reviewer grades physics as `advisory` (non-blocking) by design — physics is
 heuristic and a "violation" may be a deliberate experiment/stress test. So Stage R
 does NOT auto-fix physics and does NOT silently save: it surfaces each physics
 advisory with a recommended fix and asks the user whether to fix or keep
-(`skills/geos.md` Stage R step 5). Only schema `error` / xref `warning` (and
-`intent` mismatches against the verbatim request) drive the auto-fix loop.
+(`skills/geos.md` Stage R step 5). Only blocking findings — schema/xref `error`
+or `warning`, and `intent` mismatches against the verbatim request — drive the
+auto-fix loop.
 
 **Intent-recall — `broken_materiallist_ref`: CAUGHT.** The reviewer flagged the
 dangling `materialList` ref (`category: xref`), identified the real model name
@@ -165,3 +166,11 @@ user (may be a deliberate experiment); severity rubric grades by certainty-of-wr
 + auto-fix safety (won't-init/contradicts-intent → `error`). Only remaining
 verification: a real `/geos` build end-to-end through Stage R (Task 8) — exercised
 naturally on the next deck creation.
+
+**Severity-rubric relabel confirmed live (2026-06-09, fresh session).** Re-running
+`broken_materiallist_ref` after the rubric change returned the dangling-xref finding
+as `"severity": "error"` (previously `"warning"`), with the reviewer's own reasoning
+"This dangling cross-reference aborts GEOS at initialization." Single finding,
+`intent_mismatch: false`, intent (duration + monthly cadence) verified faithful
+first. Confirms a won't-initialize defect now outranks a runs-but-wrong one, as
+intended.
