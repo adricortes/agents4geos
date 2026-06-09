@@ -88,7 +88,24 @@ MCP session — confirming the shared module-level `DocumentStore` is reachable
 across a dispatched subagent's tool calls. **The design's data flow is valid; the
 file-only fallback is NOT needed.**
 
-**Intent-recall (Task 5 / Task 8) — PENDING.** Still to score: dispatch the real
-`geos-reviewer` on each fixture with the manifest intent and confirm
-`duration_mismatch` is caught with `intent_mismatch: true` (the case the
-deterministic tools provably miss). Append per-case caught/missed here when run.
+**Intent-recall (Task 5 / Task 8) — `duration_mismatch`: CAUGHT.** The real
+`geos-reviewer` dispatched on `duration_mismatch.xml` with the manifest intent
+returned an `intent` finding, `intent_mismatch: true`, identifying
+`maxTime=2.6e6` (~30 days) vs. the requested 1 year and suggesting `3.15e7` —
+the exact case the deterministic layer provably misses. It also independently
+flagged geometry (slab vs. 100 m cube) and output-cadence (`timeFrequency=1e3`
+vs. monthly) mismatches, auditing the whole deck rather than anchoring on the
+filename. **Reviewer recall verified for the headline intent case.**
+
+**Fixture refinement (post-Test-B).** Those bonus findings exposed that the
+original base deck (the raw `single_phase_flow` template: 10x1x1 m slab,
+`maxTime=1e4`, output every `1e3` s) was NOT faithful to the manifest intent, so
+`duration_mismatch` was not a *singular* deviation. The fixtures were regenerated
+from a base made faithful to the intent (100 m cube via xyz `{0,100}` + 10^3
+cells, `maxTime=3.15e7`, output `timeFrequency=2.628e6`). Each defect deck is now
+a single attributable deviation from that base; `good_single_phase.xml` is
+xref-clean and sanity-clean and should now elicit no blocking findings.
+
+**Still to score (optional, against the refined fixtures):** `negative_pressure`
+→ expect one `physics` finding; `broken_materiallist_ref` → expect one `xref`
+finding; `good_single_phase` → expect `[]` (advisory-only at most).
