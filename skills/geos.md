@@ -130,7 +130,8 @@ remove_element(doc_id, element_path)
      Phillips → Ezrokhi, 2-phase → 3-phase): follow the catalog's
      "Sibling variants" or "Decision rule" guidance — usually a single
      element-type swap + materialList adjustment.
-   - `validate_cross_references` → `sanity_check` → `preview_xml` → **Stage R
+   - **Stage C (Concurrent compute fan-out, see below)** →
+     `validate_cross_references` → `sanity_check` → `preview_xml` → **Stage R
      (Independent Review Gate, see below)** → `save_xml`.
    - If the catalog flagged a knowledge-module coverage ⚠️ for the chosen
      starter, warn the user briefly: "Note: this fluid family's sanity rules are
@@ -141,6 +142,36 @@ remove_element(doc_id, element_path)
 4. **For questions**: Use schema tools. For "what physics / which solver" questions,
    the catalog router (Stage 0) is often the better answer than raw schema
    introspection — it speaks user-intent vocabulary, the schema speaks XSD.
+
+## Stage C — Concurrent compute (mesh + fluids fan-out)
+
+During assembly, when the deck needs a non-trivial mesh and/or fluid model (real
+PVT computation, or a generated/resized mesh — not a trivial template tweak),
+delegate that compute to subagents running in PARALLEL instead of doing it inline.
+
+1. From Stage 0 you already have the fluid CATEGORY and the user's geometry/fluid
+   conditions.
+2. Dispatch BOTH subagents in the SAME turn (two Agent-tool calls) so they run
+   concurrently:
+   - `geos-fluids` with the chosen CATEGORY + conditions + the workspace path.
+   - `geos-mesh` with the geometry/resolution + the workspace path.
+3. Each returns a JSON result. Validate the required keys (mesh: `mesh_kind` and
+   either `internal_mesh` or `vtk_path`; fluids: `model_type` + `constitutive`). If
+   a result is missing/invalid or a subagent errored, FALL BACK to computing that
+   axis inline yourself — you still have all MCP tools. Partial failure is fine:
+   apply the good one, inline the other. A subagent failure NEVER blocks the build.
+4. Apply the results to the doc (you, the orchestrator, do ALL mutation — the
+   subagents never touch the document):
+   - Mesh `internal` → `update_element` the `InternalMesh` attributes; mesh `vtk`
+     → `add_element` a `VTKMesh` pointing at `vtk_path`.
+   - Fluids → add/update the fluid-phase `Constitutive` model(s) from
+     `constitutive`; then wire the solid / porosity / permeability and
+     `materialList` yourself.
+5. Continue: `validate_cross_references` → `sanity_check` → `preview_xml` → Stage R
+   → `save_xml`.
+
+Stage C runs BEFORE Stage R, so the independent reviewer still audits the assembled
+deck regardless of how its pieces were computed.
 
 ## Stage R — Independent Review Gate (creation flow, before save_xml)
 
