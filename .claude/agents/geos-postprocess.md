@@ -30,8 +30,9 @@ RETURN structured JSON. You do not edit any document — you have no editing too
   - Diverging field (Δ between timesteps, signed velocity, anomaly about a
     centre) → `cmc.vik`.
   - Cyclic field (phase/angle) → `cmc.romaO`.
-- **Forbidden:** `jet`, `rainbow`, `hsv`, and `coolwarm` as a default. Never pass
-  these — the tool and the result contract both reject them.
+- **Forbidden:** `jet`, `rainbow`, `hsv` — never pass these; the tool and the
+  result contract both reject them. Also never *default* to `coolwarm` (not
+  grayscale-robust); use the data-type map above.
 - Use SI units throughout (Pa, m³/s, K, m²).
 
 ## Output — STRUCTURED JSON ONLY
@@ -42,7 +43,7 @@ Return one JSON object (and nothing else):
      "std": 3.0e6, "units": "Pa"}
   ],
   "figures": [
-    {"path": "<absolute png path>", "title": "Pressure at t = 1 yr [Pa]",
+    {"path": "<absolute png path>", "title": "ΔPressure (final − initial) [Pa]",
      "units": "Pa", "colormap": "cmc.vik", "map_type": "diverging"}
   ],
   "derived": { "material_balance_m3": 1.2e5 },
