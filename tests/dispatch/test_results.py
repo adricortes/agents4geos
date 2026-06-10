@@ -160,3 +160,15 @@ def test_postproc_defaults_when_optional_absent():
     pr = parse_postprocess_result(d)
     assert pr.derived == {}
     assert pr.notes == ""
+
+
+def test_postproc_non_list_fields_raises():
+    d = _postproc_dict(); d["fields"] = {"name": "pressure"}  # dict, not list
+    with pytest.raises(ValueError):
+        parse_postprocess_result(d)
+
+
+def test_postproc_missing_figures_raises():
+    d = _postproc_dict(); del d["figures"]  # absent -> d.get returns None, not a list
+    with pytest.raises(ValueError):
+        parse_postprocess_result(d)
