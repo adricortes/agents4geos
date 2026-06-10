@@ -8,6 +8,7 @@ import numpy as np
 
 from agents4geos.server import mcp
 from agents4geos.knowledge.sanity_rules import run_sanity_checks, check_document_structure
+from agents4geos.tools.colormaps import SEQUENTIAL_DEFAULT, resolve_colormap
 
 
 @mcp.tool
@@ -53,7 +54,7 @@ def screenshot_field(
     file_path: str,
     field_name: str,
     camera_position: str = "iso",
-    colormap: str = "coolwarm",
+    colormap: str = SEQUENTIAL_DEFAULT,
     clim: list[float] | None = None,
     output_path: str = "field_screenshot.png",
     title: str | None = None,
@@ -67,12 +68,16 @@ def screenshot_field(
         file_path: Path to VTK file
         field_name: Scalar field to visualize
         camera_position: 'xy', 'xz', 'yz', or 'iso'
-        colormap: Matplotlib colormap (default: coolwarm for diverging data)
+        colormap: Scientific colormap. Default cmc.batlow (perceptually uniform,
+            colour-blind-safe). Pass cmc.vik for diverging fields. jet/rainbow are
+            rejected.
         clim: Color limits [min, max], or None for auto
         output_path: Path to save PNG
         title: Optional figure title (defaults to field_name)
     """
     import pyvista as pv
+
+    colormap = resolve_colormap(colormap, strict=True)
 
     pv.OFF_SCREEN = True
     pv.global_theme.font.size = 16
