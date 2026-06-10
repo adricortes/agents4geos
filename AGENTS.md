@@ -27,7 +27,9 @@ decisions about what work to do and in what order.
 **Note (2026-06-09):** Agents now come in two forms — *prompt-overlay skills*
 (`skills/geos:*.md`, loaded into the main conversation, same context/model) and
 *real subagents* (`.claude/agents/*.md`, dispatched via the Agent tool with their
-own context and `model:`). `geos-reviewer` is the first real subagent.
+own context and `model:`). `geos-reviewer` is the first real subagent (Tier 3). `geos-mesh` and `geos-fluids`
+are the first Tier-2 real subagents — compute-and-return advisors the orchestrator
+fans out concurrently during a build.
 
 ---
 
@@ -145,6 +147,37 @@ Three tiers based on cognitive complexity:
   (severity/category/location/issue/suggested_fix/intent_mismatch)
 - *Coordination:* feedback loop — `geos` builds → `geos-reviewer` reviews → `geos`
   fixes → re-review, bounded at 3 iterations
+
+**`geos-mesh`** (Mesh compute subagent) — Tier 2
+- *Description:* Compute a mesh (native `InternalMesh` parameters or a generated VTK
+  file) for a domain spec; return structured JSON. Dispatched by `geos` in Stage C;
+  NOT user-invocable (the `/geos:mesh` slash command remains for direct use).
+- *Type:* Real Claude Code subagent (`.claude/agents/geos-mesh.md`, `model: sonnet`),
+  dispatched via the Agent tool.
+- *Tools:* mesh compute/inspect MCP tools (`suggest_mesh_resolution`,
+  `generate_internal_mesh_xml`, `create_structured_mesh`, `create_rectilinear_mesh`,
+  `mesh_statistics`, `define_geometry_box`, `screenshot_mesh`, `load_mesh`) + `Read`.
+  No deck-editing tools — compute-and-return only.
+- *Inputs:* geometry/domain + resolution; *Outputs:* `MeshResult` JSON
+  (`src/agents4geos/dispatch/results.py`).
+- *Coordination:* fan-out — `geos` dispatches `geos-mesh` + `geos-fluids` concurrently
+  and composes their results.
+
+**`geos-fluids`** (Fluids compute subagent) — Tier 2
+- *Description:* Compute the fluid-phase constitutive model(s) + PVT data for a
+  chosen catalog category; pick the variant via the category detail file; return
+  structured JSON. Dispatched by `geos` in Stage C; NOT user-invocable
+  (the `/geos:fluids` slash command remains for direct use).
+- *Type:* Real Claude Code subagent (`.claude/agents/geos-fluids.md`,
+  `model: sonnet`), dispatched via the Agent tool.
+- *Tools:* fluid compute MCP tools (`recommend_fluid_model`, `compute_gas_properties`,
+  `compute_oil_properties`, `compute_brine_properties`, `generate_pvt_table`) + `Read`.
+  No deck-editing tools — compute-and-return only.
+- *Knowledge:* `knowledge/examples/<category>.md` (read for the stage-2 variant
+  decision rule + assembly specifics); `fluid_models`.
+- *Inputs:* catalog category + conditions; *Outputs:* `FluidResult` JSON
+  (`src/agents4geos/dispatch/results.py`).
+- *Coordination:* fan-out — see `geos-mesh`.
 
 ---
 
@@ -279,7 +312,10 @@ does not silently pass garbage downstream.
 The orchestrator dispatches multiple independent agents in parallel, then merges results.
 Useful when subtasks have no shared state.
 
-*Current example:* `geos` dispatching `geos:mesh` and `geos:fluids` concurrently — mesh creation and fluid model selection are independent.
+*Current example (2026-06-09, realized):* `geos` dispatches the real subagents
+`geos-mesh` and `geos-fluids` concurrently in Stage C (`.claude/agents/*`,
+`model: sonnet`) — mesh creation and fluid model selection are independent — then
+composes their `MeshResult`/`FluidResult` into the deck.
 
 ### Feedback loop
 
