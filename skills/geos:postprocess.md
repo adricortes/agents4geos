@@ -30,12 +30,21 @@ The MCP server runs in a different directory than your workspace. ALWAYS use abs
 - Figure title in upper-left corner
 - White background, proper font sizes
 
-ALWAYS provide a descriptive `title` parameter, e.g.:
+REQUIRED: every figure's `title` MUST end with the SI unit in brackets, e.g.:
 - `title="Pressure Field at t = 1 year [Pa]"`
 - `title="ΔPressure (Final - Initial) [Pa]"`
 - `title="Water Density [kg/m³]"`
 
-Default colormap is `coolwarm` (blue-white-red, good for diverging data). Use `viridis` for sequential data (saturation, porosity).
+## Colormap contract (publication-quality, REQUIRED)
+Choose the colormap by data type — Crameri scientific maps only (perceptually
+uniform, colour-blind-safe, grayscale-readable):
+- **Sequential** (saturation, porosity, concentration, pressure magnitude,
+  density) → `cmc.batlow`
+- **Diverging** (Δ fields, signed velocity, anomaly about a centre) → `cmc.vik`
+- **Cyclic** (phase/angle) → `cmc.romaO`
+
+NEVER use `jet`, `rainbow`, `hsv`, or `coolwarm`-as-default — they are
+perceptually non-uniform and `screenshot_field` rejects them.
 
 ## All units are SI
 - Pressure: Pa
