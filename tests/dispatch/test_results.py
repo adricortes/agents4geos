@@ -3,6 +3,9 @@ from agents4geos.dispatch.results import (
     FluidResult, MeshResult, ConstitutiveSpec,
     parse_fluid_result, parse_mesh_result, MESH_KINDS, INTERNAL_MESH_KEYS,
 )
+from agents4geos.dispatch.results import (
+    PostprocessResult, FieldStat, FigureRef, parse_postprocess_result,
+)
 
 
 def _fluid_dict():
@@ -101,3 +104,59 @@ def test_mesh_missing_kind_raises():
 def test_constants_exposed():
     assert MESH_KINDS == ("internal", "vtk")
     assert "elementTypes" in INTERNAL_MESH_KEYS
+
+
+def _postproc_dict():
+    return {
+        "fields": [
+            {"name": "pressure", "min": 1.0e6, "max": 2.0e7,
+             "mean": 1.1e7, "std": 3.0e6, "units": "Pa"}
+        ],
+        "figures": [
+            {"path": "/abs/pressure.png", "title": "Pressure at t = 1 yr [Pa]",
+             "units": "Pa", "colormap": "cmc.vik", "map_type": "diverging"}
+        ],
+        "derived": {"material_balance_m3": 1.2e5},
+        "notes": "final timestep",
+    }
+
+
+def test_parse_postprocess_roundtrip():
+    pr = parse_postprocess_result(_postproc_dict())
+    assert isinstance(pr, PostprocessResult)
+    assert isinstance(pr.fields[0], FieldStat)
+    assert pr.fields[0].units == "Pa"
+    assert isinstance(pr.figures[0], FigureRef)
+    assert pr.figures[0].map_type == "diverging"
+    assert pr.derived["material_balance_m3"] == 1.2e5
+
+
+def test_postproc_field_missing_stat_key_raises():
+    d = _postproc_dict(); del d["fields"][0]["std"]
+    with pytest.raises(ValueError):
+        parse_postprocess_result(d)
+
+
+def test_postproc_figure_missing_path_raises():
+    d = _postproc_dict(); del d["figures"][0]["path"]
+    with pytest.raises(ValueError):
+        parse_postprocess_result(d)
+
+
+def test_postproc_banned_colormap_fails_validation():
+    d = _postproc_dict(); d["figures"][0]["colormap"] = "jet"
+    with pytest.raises(ValueError):
+        parse_postprocess_result(d)
+
+
+def test_postproc_bad_map_type_raises():
+    d = _postproc_dict(); d["figures"][0]["map_type"] = "rainbowish"
+    with pytest.raises(ValueError):
+        parse_postprocess_result(d)
+
+
+def test_postproc_defaults_when_optional_absent():
+    d = _postproc_dict(); del d["derived"]; del d["notes"]
+    pr = parse_postprocess_result(d)
+    assert pr.derived == {}
+    assert pr.notes == ""
