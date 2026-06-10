@@ -45,15 +45,21 @@ went wrong while the context is fresh.
    find . -name "*.vtu" | head -5
    ```
 
-2. **Analyze with MCP tools** (use ABSOLUTE paths):
-   - `read_vtk_output(path)` → list available fields
-   - `extract_field(path, field_name)` → statistics
-   - `screenshot_field(path, field_name, title="...", output_path="...")` → publication-quality figure
-   - `compute_darcy_velocity(path, permeability_m2, viscosity_Pa_s)` → derive velocity from pressure
-   - `compare_timesteps(file_paths, field_name)` → time evolution
+2. **Dispatch the `geos-postprocess` subagent** (Agent tool) with the absolute
+   VTK path(s), the fields of interest, and the workspace path. It returns a
+   `PostprocessResult` JSON (field stats + publication-quality figures with
+   Crameri colormaps + derived quantities). Surface its figures and stats to the
+   user.
+   - **Inline fallback:** if the subagent errors or returns an invalid result,
+     analyze inline yourself with the MCP tools — `read_vtk_output` →
+     `extract_field` → `screenshot_field` (default `cmc.batlow`; pass `cmc.vik`
+     for diverging fields; titles end in the SI unit) → `compute_darcy_velocity`
+     / `compare_timesteps`. A subagent failure NEVER blocks post-processing.
 
 ## Tips
 - GEOS VTK output structure: `vtkOutput/<timestep>/mesh/Level0/<region>/rank_0.vtu`
 - Use `ls vtkOutput/` to see timestep directories (000000, 000001, etc.)
 - The last timestep directory has the final state
-- Always provide a descriptive `title` for screenshots (e.g., "Pressure at t=1yr [Pa]")
+- Figures must use a Crameri scientific colormap (`cmc.batlow` sequential /
+  `cmc.vik` diverging) and a title ending in the SI unit, e.g. "Pressure at
+  t=1yr [Pa]". jet/rainbow are rejected.

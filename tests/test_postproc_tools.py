@@ -1,12 +1,16 @@
 """Tests for post-processing tools."""
 
+import inspect
+
 import numpy as np
+import pytest
 from pathlib import Path
 
 from agents4geos.tools.postproc_tools import (
-    read_vtk_output, extract_field, sanity_check,
+    read_vtk_output, extract_field, sanity_check, screenshot_field,
 )
 from agents4geos.tools.xml_tools import create_document
+from agents4geos.tools.colormaps import SEQUENTIAL_DEFAULT
 
 
 def _create_test_vtk(tmp_path: Path) -> Path:
@@ -42,3 +46,19 @@ def test_sanity_check_template(schema):
     result = sanity_check(doc_id=doc["doc_id"])
     assert "checks" in result
     assert isinstance(result["total"], int)
+
+
+def test_screenshot_default_is_scientific_not_coolwarm():
+    sig = inspect.signature(screenshot_field)
+    assert sig.parameters["colormap"].default == SEQUENTIAL_DEFAULT
+
+
+def test_screenshot_rejects_banned_colormap_before_render(tmp_path):
+    # A banned map must raise at the guard, before any PyVista I/O — so a
+    # non-existent file path is fine; the ValueError fires first.
+    with pytest.raises(ValueError):
+        screenshot_field(
+            file_path=str(tmp_path / "nope.vtu"),
+            field_name="pressure",
+            colormap="jet",
+        )

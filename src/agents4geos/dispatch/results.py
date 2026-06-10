@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from agents4geos.tools.colormaps import BANNED_COLORMAPS
+
 MESH_KINDS = ("internal", "vtk")
 INTERNAL_MESH_KEYS = (
     "xCoords", "yCoords", "zCoords", "nx", "ny", "nz", "elementTypes",
@@ -92,5 +94,84 @@ def parse_mesh_result(d: dict) -> MeshResult:
         internal_mesh=d.get("internal_mesh"),
         vtk_path=d.get("vtk_path"),
         stats=d.get("stats", {}),
+        notes=d.get("notes", ""),
+    )
+
+
+MAP_TYPES = ("sequential", "diverging", "cyclic")
+_FIELD_STAT_KEYS = ("name", "min", "max", "mean", "std", "units")
+_FIGURE_KEYS = ("path", "title", "colormap", "map_type")
+
+
+@dataclass(frozen=True)
+class FieldStat:
+    name: str
+    min: float
+    max: float
+    mean: float
+    std: float
+    units: str
+
+
+@dataclass(frozen=True)
+class FigureRef:
+    path: str
+    title: str
+    colormap: str
+    map_type: str
+    units: str = ""
+
+
+@dataclass(frozen=True)
+class PostprocessResult:
+    fields: list[FieldStat]
+    figures: list[FigureRef]
+    derived: dict = field(default_factory=dict)
+    notes: str = ""
+
+
+def parse_postprocess_result(d: dict) -> PostprocessResult:
+    """Validate and parse a geos-postprocess JSON result.
+
+    Enforces the publication contract in code: every figure must declare a valid
+    map_type and a non-banned colormap. Raises ValueError on any bad shape.
+    """
+    for key in ("fields", "figures"):
+        if not isinstance(d.get(key), list):
+            raise ValueError(f"PostprocessResult '{key}' must be a list")
+
+    stats: list[FieldStat] = []
+    for i, f in enumerate(d["fields"]):
+        missing = set(_FIELD_STAT_KEYS) - f.keys()
+        if missing:
+            raise ValueError(f"fields[{i}] missing keys: {sorted(missing)}")
+        stats.append(FieldStat(
+            f["name"], f["min"], f["max"], f["mean"], f["std"], f["units"],
+        ))
+
+    figs: list[FigureRef] = []
+    for i, g in enumerate(d["figures"]):
+        missing = set(_FIGURE_KEYS) - g.keys()
+        if missing:
+            raise ValueError(f"figures[{i}] missing keys: {sorted(missing)}")
+        if g["colormap"] in BANNED_COLORMAPS:
+            raise ValueError(
+                f"figures[{i}] colormap {g['colormap']!r} is banned "
+                f"(non-uniform); use a scientific map"
+            )
+        if g["map_type"] not in MAP_TYPES:
+            raise ValueError(
+                f"figures[{i}] invalid map_type {g['map_type']!r}; "
+                f"expected one of {MAP_TYPES}"
+            )
+        figs.append(FigureRef(
+            g["path"], g["title"], g["colormap"], g["map_type"],
+            g.get("units", ""),
+        ))
+
+    return PostprocessResult(
+        fields=stats,
+        figures=figs,
+        derived=d.get("derived", {}),
         notes=d.get("notes", ""),
     )
