@@ -179,6 +179,23 @@ Three tiers based on cognitive complexity:
   (`src/agents4geos/dispatch/results.py`).
 - *Coordination:* fan-out — see `geos-mesh`.
 
+**`geos-postprocess`** (Post-run analysis subagent) — Tier 2
+- *Description:* Analyze GEOS VTK output — field statistics + publication-quality
+  figures + derived quantities; return structured JSON. Dispatched by `geos` after
+  a successful run; NOT user-invocable (the `/geos:postprocess` slash command
+  remains for direct use).
+- *Type:* Real Claude Code subagent (`.claude/agents/geos-postprocess.md`,
+  `model: sonnet`), dispatched via the Agent tool.
+- *Tools:* postproc MCP tools (`read_vtk_output`, `extract_field`,
+  `screenshot_field`, `compare_timesteps`, `compute_darcy_velocity`,
+  `compute_material_balance`, `compute_well_performance`) + `sanity_check` +
+  `Read`. No deck-editing tools — compute-and-return only.
+- *Inputs:* absolute VTK path(s) + fields of interest; *Outputs:*
+  `PostprocessResult` JSON (`src/agents4geos/dispatch/results.py`).
+- *Coordination:* post-run compute-and-return — its driver is the **publication
+  -quality figure contract** (Crameri colormaps, SI-unit titles, no rainbow/jet),
+  not parallelism; it does not fan out.
+
 ---
 
 ## 4. Tool Inventory
@@ -316,6 +333,17 @@ Useful when subtasks have no shared state.
 `geos-mesh` and `geos-fluids` concurrently in Stage C (`.claude/agents/*`,
 `model: sonnet`) — mesh creation and fluid model selection are independent — then
 composes their `MeshResult`/`FluidResult` into the deck.
+
+### Quality-contract subagent
+
+A subagent can exist purely to make a quality standard non-skippable, even when it
+never fans out. Its contract re-instantiates with fresh attention on every
+dispatch, so a MUST actually holds — unlike inline guidance that degrades over a
+long orchestrator session.
+
+*Current example (2026-06-10):* `geos-postprocess` enforces the publication-quality
+figure contract (Crameri scientific colormaps, SI-unit titles, rainbow/`jet`
+banned) on every post-run analysis, backed in code by `parse_postprocess_result`.
 
 ### Feedback loop
 
