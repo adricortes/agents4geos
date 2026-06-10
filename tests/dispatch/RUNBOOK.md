@@ -28,3 +28,18 @@ the server the subagents cannot reach their MCP tools.
 
 ## Results log
 Append a dated block each run (per-fixture pass/fail, parallel-dispatch observed).
+
+### 2026-06-09 — baseline: PENDING (no MCP server in build session)
+The implementing session was a headless background job WITHOUT the `agents4geos`
+MCP server registered, so the live fan-out gate (Task 7) could not be executed: the
+`geos-mesh`/`geos-fluids` subagents cannot reach their `mcp__agents4geos__*` tools
+without the server. The deterministic substrate IS verified — the `MeshResult`/
+`FluidResult` contracts pass their 12 unit tests (`tests/dispatch/test_results.py`),
+and both subagent files' documented JSON was cross-checked against the validators.
+The remaining unknown is purely the live behavior: that a dispatched subagent
+returns a contract-valid result and that two can be fanned out in one turn.
+
+**To close this baseline:** deploy the subagents into a `/geos`-capable workspace
+(`cp .claude/agents/geos-mesh.md .claude/agents/geos-fluids.md <workspace>/.claude/agents/`)
+with the MCP server registered, run the Procedure above, and replace this block with
+per-fixture caught/missed results. Tracked in `agents4geos-cw7`.
