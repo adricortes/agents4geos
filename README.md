@@ -62,7 +62,7 @@ pressure outlet on the right at 20 MPa, run for 1 year with VTK output monthly
 | `/geos:mesh` | Create or visualize meshes |
 | `/geos:fluids` | Compute fluid PVT properties |
 | `/geos:relperm` | Generate relative permeability curves |
-| `/geos:postprocess` | Analyze GEOS VTK output |
+| `/geos:postprocess` | Analyze GEOS VTK output → publication-quality figures |
 | `/geos:schema` | Query the GEOS XSD schema |
 | `/geos:run` | Run GEOS simulation and analyze output |
 | `/geos:curate-errors` | Curate runtime error logs for pattern learning |
@@ -91,7 +91,7 @@ Knowledge ─ Domain patterns from 200+ GEOS input files
 | **Fluid & Constitutive** | 10 | pyResToolbox (SI) | Gas/oil/brine PVT, relperm, cap pressure, well IPR |
 | **Mesh** | 8 | PyVista | Create/load meshes, statistics, screenshots, XML generation |
 | **XML Assembly & Validation** | 14 | in-repo XML engine + xmllint | Create/load/edit/save documents, validate, templates |
-| **Post-Processing** | 9 | PyVista + pyResToolbox | VTK analysis, field viz, Darcy velocity, material balance |
+| **Post-Processing** | 9 | PyVista + cmcrameri + pyResToolbox | VTK analysis, publication-quality field figures (Crameri scientific colormaps), Darcy velocity, material balance |
 | **Preprocessing** | 4 | Knowledge modules | Unit conversion, parameter expansion, include resolution, XML formatting |
 
 For the full tool inventory and agent-tool mappings, see [AGENTS.md §4](AGENTS.md#4-tool-inventory).
@@ -159,6 +159,7 @@ Then register the MCP server — see [Installation → Step 3](#3-set-up-a-works
 | `agents4geos.geos` (in-repo) | this repo, `src/agents4geos/geos/` | Schema parser, XML reader/writer, templates, validation (adopted from the superseded geos-tui) |
 | [pyResToolbox](https://github.com/adricortes/pyResToolbox) (SI fork) | git pin (`fluids` extra) | Fluid PVT, relative permeability, well performance. Fork of [mwburgoyne/pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) with comprehensive SI unit refactoring. |
 | [PyVista](https://github.com/pyvista/pyvista) | PyPI `pyvista>=0.43` | Mesh creation, VTK I/O, headless visualization |
+| [cmcrameri](https://github.com/callumrollo/cmcrameri) | PyPI `cmcrameri>=1.4` | Crameri scientific colour maps (perceptually uniform, colour-blind-safe) for publication-quality field figures |
 
 ## Installation
 
@@ -177,6 +178,7 @@ uv sync --all-extras
 uv run python -c "from agents4geos.config import get_schema; print('schema engine OK —', len(get_schema().elements), 'elements')"
 uv run python -c "from pyrestoolbox import gas; print('pyResToolbox OK')"
 uv run python -c "import pyvista as pv; print('PyVista OK')"
+uv run python -c "import cmcrameri.cm, matplotlib; print('Crameri colormaps OK —', 'cmc.batlow' in matplotlib.colormaps)"
 ```
 
 ### 3. Set up a workspace
@@ -296,5 +298,6 @@ TBD
 - [GEOS](https://github.com/GEOS-DEV/GEOS) — Lawrence Livermore National Laboratory, Stanford University, TotalEnergies
 - [pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) — Mark W. Burgoyne (original); SI unit refactoring by Adriano Cortes
 - [PyVista](https://github.com/pyvista/pyvista) — PyVista developers
+- [Scientific colour maps](https://www.fabiocrameri.ch/colourmaps/) — Fabio Crameri (via [cmcrameri](https://github.com/callumrollo/cmcrameri); CC-BY 4.0)
 - [FastMCP](https://github.com/prefecthq/fastmcp) — Prefect
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — Anthropic
