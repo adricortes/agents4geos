@@ -27,6 +27,13 @@ _STEER = {
     "nipy_spectral": SEQUENTIAL_DEFAULT,
 }
 
+# Matplotlib builtins used as fallbacks when cmcrameri is unavailable.
+_CMC_FALLBACK = {
+    SEQUENTIAL_DEFAULT: "viridis",
+    DIVERGING_DEFAULT:  "RdBu_r",
+    CYCLIC_DEFAULT:     "twilight",   # matplotlib's true cyclic map
+}
+
 
 def _register_crameri() -> bool:
     """Import cmcrameri to register the cmc.* colormaps. True if available."""
@@ -57,5 +64,5 @@ def resolve_colormap(name: str, *, strict: bool = True) -> str:
             )
         name = _STEER[name]
     if name.startswith("cmc.") and not _CMC_AVAILABLE:
-        return "viridis" if name != DIVERGING_DEFAULT else "RdBu_r"
+        return _CMC_FALLBACK.get(name, "viridis")
     return name

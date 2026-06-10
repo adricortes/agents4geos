@@ -1,6 +1,7 @@
 import matplotlib
 import pytest
 
+import agents4geos.tools.colormaps as _cm
 from agents4geos.tools.colormaps import (
     SEQUENTIAL_DEFAULT, DIVERGING_DEFAULT, CYCLIC_DEFAULT,
     BANNED_COLORMAPS, resolve_colormap,
@@ -39,3 +40,10 @@ def test_resolve_steers_banned_nonstrict():
 
 def test_resolve_passes_through_safe_map():
     assert resolve_colormap("viridis") == "viridis"
+
+
+def test_resolve_cmc_fallback_when_unavailable(monkeypatch):
+    monkeypatch.setattr(_cm, "_CMC_AVAILABLE", False)
+    assert _cm.resolve_colormap("cmc.batlow") == "viridis"
+    assert _cm.resolve_colormap("cmc.vik")    == "RdBu_r"
+    assert _cm.resolve_colormap("cmc.romaO")  == "twilight"
