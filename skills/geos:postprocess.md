@@ -10,6 +10,7 @@ CRITICAL: Use ONLY the `agents4geos` MCP tools.
 - `extract_field(path, field_name)` — min/max/mean/std statistics
 - `screenshot_field(path, field_name, camera, colormap)` — headless visualization
 - `compare_timesteps(file_paths, field_name)` — field evolution over time
+- `compute_darcy_velocity(path, permeability_m2, viscosity_Pa_s)` — derive velocity from the pressure field
 - `compute_material_balance(pressure_history, production, temperature, fluid_type)` — reserves estimation (SI units)
 - `compute_well_performance(Pr, Pwf, T, k, h)` — quick rate sanity check (SI units)
 - `sanity_check(doc_id)` — physics heuristics on the input file
@@ -30,12 +31,22 @@ The MCP server runs in a different directory than your workspace. ALWAYS use abs
 - Figure title in upper-left corner
 - White background, proper font sizes
 
-ALWAYS provide a descriptive `title` parameter, e.g.:
+REQUIRED: every figure's `title` MUST end with the SI unit in brackets, e.g.:
 - `title="Pressure Field at t = 1 year [Pa]"`
 - `title="ΔPressure (Final - Initial) [Pa]"`
 - `title="Water Density [kg/m³]"`
 
-Default colormap is `coolwarm` (blue-white-red, good for diverging data). Use `viridis` for sequential data (saturation, porosity).
+## Colormap contract (publication-quality, REQUIRED)
+Choose the colormap by data type — Crameri scientific maps only (perceptually
+uniform, colour-blind-safe, grayscale-readable):
+- **Sequential** (saturation, porosity, concentration, pressure magnitude,
+  density) → `cmc.batlow`
+- **Diverging** (Δ fields, signed velocity, anomaly about a centre) → `cmc.vik`
+- **Cyclic** (phase/angle) → `cmc.romaO`
+
+NEVER use `jet`, `rainbow`, or `hsv` — they are perceptually non-uniform and
+`screenshot_field` rejects them outright. And never *default* to `coolwarm`
+(it is not grayscale-robust); pick the data-type map above instead.
 
 ## All units are SI
 - Pressure: Pa
