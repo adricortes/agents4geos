@@ -52,3 +52,42 @@ the frontmatter, same as `geos-reviewer`'s `model: opus`.)
 **Optional remaining coverage:** the `geos-fluids` "single-phase flow" / "water"
 fixture (expected: a `CompressibleSinglePhaseFluid`-family `FluidResult`) — not
 required for the gate, which is already PASS.
+
+---
+
+# geos-postprocess live gate (tnt)
+
+Agent-run eval — not a pytest. Verifies the `geos-postprocess` subagent returns a
+contract-valid `PostprocessResult` when dispatched against a real GEOS VTK output.
+
+## Prerequisite
+Run from a session with the `agents4geos` MCP server registered AND the subagent
+deployed (`.claude/agents/geos-postprocess.md`). Without the server the subagent
+cannot reach its MCP tools.
+
+## Goal
+Dispatch `geos-postprocess` against a real GEOS VTK output in an MCP-registered
+`/geos` session and confirm a contract-valid `PostprocessResult`.
+
+## Fixture specs
+- A completed GEOS deck run via `/geos:run` that produced at least one `.vtu`
+  output file (final timestep).
+
+## Procedure
+1. Run a small deck through `/geos:run`; locate the final-timestep `.vtu`.
+2. From the orchestrator, dispatch `geos-postprocess` with the absolute VTK path.
+3. Parse its JSON with `parse_postprocess_result` — must succeed.
+4. Assert each figure's `colormap` is a `cmc.*` map (NOT jet/rainbow/coolwarm) and
+   its `title` ends in a bracketed SI unit; assert each figure `path` exists.
+
+## Pass bar
+- `parse_postprocess_result` accepts the returned JSON without error.
+- Every figure entry has a `colormap` matching `cmc.*`, a `title` ending in `[<unit>]`,
+  and a `path` that exists on disk.
+
+## Results log
+Append a dated block each run (per-fixture pass/fail).
+
+### Status: PENDING — not yet run live (tnt)
+Record PASS once run live with the MCP server registered (headless build sessions
+lack it; cw7 RUNBOOK pattern).
