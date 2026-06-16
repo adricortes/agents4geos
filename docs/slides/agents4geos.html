@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agents4GEOS — Overview</title>
+
+  <!-- reveal.js core + LIGHT theme (white) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+
+  <style>
+    :root {
+      --a4g-blue:   #1f6feb;
+      --a4g-teal:   #0d9488;
+      --a4g-amber:  #b45309;
+      --a4g-purple: #7c3aed;
+      --a4g-ink:    #1f2933;
+      --a4g-mute:   #5b6770;
+      --a4g-line:   #e3e8ee;
+      --a4g-bg2:    #f6f8fa;
+    }
+
+    .reveal {
+      font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--a4g-ink);
+      font-size: 30px;
+    }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-transform: none;
+      color: var(--a4g-ink);
+    }
+    .reveal h1 { font-size: 2.1em; }
+    .reveal h2 { font-size: 1.45em; margin-bottom: 0.5em; }
+    .reveal section { text-align: left; }
+    .reveal .slides > section { padding-top: 12px; }
+
+    /* accent rule under section titles */
+    .reveal h2.acc { border-bottom: 4px solid var(--a4g-blue); padding-bottom: 8px; display: inline-block; }
+
+    .reveal .lead   { color: var(--a4g-mute); font-size: 0.95em; }
+    .reveal .center { text-align: center; }
+    .reveal .muted  { color: var(--a4g-mute); }
+    .reveal code    { color: var(--a4g-purple); background: var(--a4g-bg2); padding: 1px 6px; border-radius: 4px; font-size: 0.85em; }
+
+    .reveal ul { margin-left: 1em; }
+    .reveal li { margin: 0.28em 0; }
+
+    /* tag chips */
+    .chip {
+      display: inline-block; padding: 4px 12px; border-radius: 999px;
+      font-size: 0.62em; font-weight: 600; margin: 4px 6px 4px 0;
+      background: var(--a4g-bg2); border: 1px solid var(--a4g-line); color: var(--a4g-mute);
+    }
+
+    /* card grid */
+    .grid { display: grid; gap: 16px; }
+    .grid.c2 { grid-template-columns: 1fr 1fr; }
+    .grid.c3 { grid-template-columns: repeat(3, 1fr); }
+    .grid.c5 { grid-template-columns: repeat(5, 1fr); }
+    .card {
+      background: #fff; border: 1px solid var(--a4g-line); border-radius: 12px;
+      padding: 16px 18px; box-shadow: 0 1px 3px rgba(31,41,51,0.05);
+    }
+    .card h3 { font-size: 0.8em; margin: 0 0 6px 0; }
+    .card p  { font-size: 0.6em; margin: 0; color: var(--a4g-mute); line-height: 1.35; }
+    .card .big { font-size: 1.6em; font-weight: 700; line-height: 1; }
+    .card.t-blue   { border-top: 4px solid var(--a4g-blue); }
+    .card.t-teal   { border-top: 4px solid var(--a4g-teal); }
+    .card.t-amber  { border-top: 4px solid var(--a4g-amber); }
+    .card.t-purple { border-top: 4px solid var(--a4g-purple); }
+
+    /* tiers */
+    .tier { display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--a4g-line);
+            border-radius:10px; padding:12px 16px; margin:10px 0; }
+    .tier .badge { font-weight:700; font-size:0.7em; padding:6px 12px; border-radius:8px; color:#fff; white-space:nowrap; }
+    .tier .t1 { background: var(--a4g-teal); }
+    .tier .t2 { background: var(--a4g-blue); }
+    .tier .t3 { background: var(--a4g-purple); }
+    .tier .desc { font-size:0.66em; color:var(--a4g-mute); }
+    .tier .desc b { color: var(--a4g-ink); }
+
+    /* pipeline / flow */
+    .flow { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .node { background:#fff; border:1px solid var(--a4g-line); border-radius:10px; padding:10px 16px;
+            font-size:0.62em; font-weight:600; text-align:center; box-shadow:0 1px 3px rgba(31,41,51,0.05); }
+    .node .s { display:block; font-size:0.78em; font-weight:400; color:var(--a4g-mute); }
+    .node.hub { border:2px solid var(--a4g-purple); background:#faf5ff; }
+    .arrow { color: var(--a4g-mute); font-size:1.2em; }
+
+    .reveal .footer { position:absolute; bottom:14px; left:24px; font-size:0.5em; color:var(--a4g-mute); }
+    .reveal .pagenum { position:absolute; bottom:14px; right:24px; font-size:0.5em; color:var(--a4g-mute); }
+
+    .kpi { display:flex; gap:28px; margin-top:18px; }
+    .kpi .n { font-size:2.2em; font-weight:700; color:var(--a4g-blue); line-height:1; }
+    .kpi .l { font-size:0.6em; color:var(--a4g-mute); }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <!-- 1 — TITLE -->
+  <section data-auto-animate>
+    <div style="margin-top:40px;">
+      <span class="chip">Claude Code · MCP server</span>
+      <span class="chip">GEOS-DEV simulations</span>
+    </div>
+    <h1 data-id="title" style="margin-top:24px;">Agents4GEOS</h1>
+    <p class="lead" style="font-size:1.05em; max-width:20em;">
+      A team of specialized AI agents that turn plain-English requests into
+      <b>validated GEOS XML</b> simulation decks.
+    </p>
+    <div class="kpi">
+      <div><div class="n">52</div><div class="l">MCP tools</div></div>
+      <div><div class="n">13</div><div class="l">agents / subagents</div></div>
+      <div><div class="n">5</div><div class="l">knowledge modules</div></div>
+      <div><div class="n">3</div><div class="l">capability tiers</div></div>
+    </div>
+    <p class="footer">Agents4GEOS — Architecture overview</p>
+  </section>
+
+  <!-- 2 — WHAT / WHY -->
+  <section>
+    <h2 class="acc">What it is &amp; why it exists</h2>
+    <div class="grid c2" style="margin-top:8px;">
+      <div>
+        <p><b>The problem.</b> A GEOS simulation is a 200–500 line XML deck:
+        cross-referenced parameters across solvers, constitutive models, mesh,
+        boundary conditions, and outputs. Easy to get subtly wrong.</p>
+        <p><b>The idea.</b> Describe the simulation in English; a team of agents —
+        each specialized in schema, fluids, meshing, validation, or
+        post-processing — collaborates to produce a deck that is <b>schema-valid,
+        cross-referenced, and physically sane.</b></p>
+      </div>
+      <div class="card t-blue">
+        <h3>Grounded, not guessed</h3>
+        <p style="font-size:0.66em;">
+        Outputs are backed by <b>real physics computations</b> (PVT via
+        pyResToolbox, mesh/VTK via PyVista) and by domain knowledge audited from
+        <b>200+ official GEOS input files</b> — not free-form model recall.</p>
+        <div style="margin-top:14px;">
+          <span class="chip">in-repo schema/XML engine</span>
+          <span class="chip">pyResToolbox PVT</span>
+          <span class="chip">PyVista mesh/VTK</span>
+        </div>
+      </div>
+    </div>
+    <p class="footer">Agents4GEOS</p><p class="pagenum">2 / 6</p>
+  </section>
+
+  <!-- 3 — COMPONENTS (taxonomy) -->
+  <section>
+    <h2 class="acc">Five kinds of components</h2>
+    <p class="lead" style="margin-top:-4px;">Tools <i>do work</i> · knowledge <i>encodes expertise</i> · agents <i>decide what work to do.</i></p>
+    <div class="grid c5" style="margin-top:6px;">
+      <div class="card t-purple">
+        <h3>Agent</h3>
+        <p>A skill file giving Claude a role, workflow &amp; authority. Has a tier, a tool set, and I/O contracts.</p>
+      </div>
+      <div class="card t-blue">
+        <h3>Tool</h3>
+        <p>A stateless <code>@mcp.tool</code>. Inputs → outputs. No memory, no decisions, no awareness of peers.</p>
+      </div>
+      <div class="card t-teal">
+        <h3>Knowledge</h3>
+        <p>Static Python data: field names, constitutive assemblies, cross-refs, sanity rules. Read by tools.</p>
+      </div>
+      <div class="card t-amber">
+        <h3>State</h3>
+        <p>The <b>DocumentStore</b> — in-memory <code>doc_id → XML</code>, shared across tool calls in a session.</p>
+      </div>
+      <div class="card">
+        <h3>Hook</h3>
+        <p>Shell script Claude Code fires after tool use — e.g. auto-validate XML, auto-screenshot VTK. Reacts, never decides.</p>
+      </div>
+    </div>
+    <p class="muted" style="font-size:0.62em; margin-top:18px;">
+      Agents come in two forms: <b>prompt-overlay skills</b> (<code>skills/geos:*.md</code>, run in the main conversation)
+      and <b>real subagents</b> (<code>.claude/agents/*.md</code>, dispatched with their own context &amp; model).
+    </p>
+    <p class="footer">Agents4GEOS · Taxonomy</p><p class="pagenum">3 / 6</p>
+  </section>
+
+  <!-- 4 — TOOL DOMAINS + REPO -->
+  <section>
+    <h2 class="acc">Where the work lives</h2>
+    <div class="grid c2">
+      <div>
+        <p style="font-size:0.78em;"><b>52 MCP tools</b>, grouped by domain across 6 modules in <code>src/agents4geos/tools/</code>:</p>
+        <div>
+          <span class="chip">Schema &amp; introspection · 7</span>
+          <span class="chip">Fluid &amp; constitutive · 10</span>
+          <span class="chip">Mesh · 8</span>
+          <span class="chip">XML assembly &amp; validation · 14</span>
+          <span class="chip">Post-processing · 7</span>
+          <span class="chip">Pre-processing · 4</span>
+          <span class="chip">Utility · 2</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:0.72em;">Repository map</h3>
+        <p style="font-size:0.6em; line-height:1.6;">
+          <code>server.py</code> — FastMCP, registers all tools<br>
+          <code>tools/</code> — 6 stateless tool modules<br>
+          <code>geos/</code> — in-repo schema/XML engine<br>
+          <code>knowledge/</code> — domain data modules<br>
+          <code>state/</code> — DocumentStore<br>
+          <code>skills/</code> — slash-command agents<br>
+          <code>.claude/agents/</code> — real subagents<br>
+          <code>hooks/</code> — auto-validate / screenshot
+        </p>
+      </div>
+    </div>
+    <p class="muted" style="font-size:0.62em; margin-top:16px;">
+      <b>Single source of truth:</b> tools never hardcode domain logic — they read the 5 knowledge modules
+      (<code>field_names</code>, <code>fluid_models</code>, <code>cross_refs</code>, <code>sanity_rules</code>, <code>lessons_learned</code>).
+      New patterns get added to knowledge, not to tools.
+    </p>
+    <p class="footer">Agents4GEOS · Tools &amp; layout</p><p class="pagenum">4 / 6</p>
+  </section>
+
+  <!-- 5 — TIERS + AGENT ROSTER -->
+  <section>
+    <h2 class="acc">Agents &amp; model routing</h2>
+    <p class="lead" style="margin-top:-4px;">Each agent declares a tier; the orchestrator picks the cheapest model that handles it reliably.</p>
+    <div class="tier">
+      <span class="badge t1">Tier 1 · Haiku</span>
+      <span class="desc"><b>Retrieval</b> — lookup, extraction, formatting. <i>e.g.</i> <code>geos:schema</code>, <code>geos:inspect</code>, <code>geos:curate-errors</code></span>
+    </div>
+    <div class="tier">
+      <span class="badge t2">Tier 2 · Sonnet</span>
+      <span class="desc"><b>Synthesis</b> — assembly, validation, computation. <i>e.g.</i> <code>geos:edit</code>, <code>geos:validate</code>, <code>geos-mesh</code>, <code>geos-fluids</code>, <code>geos-postprocess</code></span>
+    </div>
+    <div class="tier">
+      <span class="badge t3">Tier 3 · Opus</span>
+      <span class="desc"><b>Planning</b> — multi-step reasoning, user dialogue, design. <i>e.g.</i> <code>geos</code> (orchestrator), <code>geos:run</code>, <code>geos-reviewer</code></span>
+    </div>
+    <p class="muted" style="font-size:0.62em; margin-top:12px;">
+      <code>geos</code> is the <b>only agent that talks to the user</b>; everyone else reports back to it.
+      Tiers are recommendations — as models improve, an agent can move down a tier without changing its definition.
+    </p>
+    <p class="footer">Agents4GEOS · Tiers</p><p class="pagenum">5 / 6</p>
+  </section>
+
+  <!-- 6 — HOW THEY'RE WIRED -->
+  <section>
+    <h2 class="acc">How they're wired</h2>
+    <p class="lead" style="margin-top:-4px;">Every handoff passes <b>structured data</b> — never free-form prose. Four coordination patterns.</p>
+
+    <div class="grid c2" style="gap:14px;">
+      <div class="card t-blue">
+        <h3>Fan-out</h3>
+        <div class="flow" style="justify-content:flex-start;">
+          <div class="node hub">geos</div>
+          <span class="arrow">⇉</span>
+          <div class="node">geos-mesh<span class="s">MeshResult</span></div>
+          <div class="node">geos-fluids<span class="s">FluidResult</span></div>
+        </div>
+        <p style="margin-top:8px;">Independent subagents run <b>concurrently</b> in Stage&nbsp;C; the orchestrator composes their JSON into the deck.</p>
+      </div>
+
+      <div class="card t-purple">
+        <h3>Feedback loop</h3>
+        <div class="flow" style="justify-content:flex-start;">
+          <div class="node hub">geos<span class="s">build / fix</span></div>
+          <span class="arrow">⇄</span>
+          <div class="node">geos-reviewer<span class="s">findings JSON</span></div>
+        </div>
+        <p style="margin-top:8px;">Fresh-context reviewer judges schema, cross-refs &amp; intent. Build → review → fix, <b>bounded at 3 iterations.</b></p>
+      </div>
+
+      <div class="card t-teal">
+        <h3>Pipeline</h3>
+        <div class="flow" style="justify-content:flex-start;">
+          <div class="node">fluids<span class="s">recommend</span></div>
+          <span class="arrow">→</span>
+          <div class="node">geos<span class="s">assemble</span></div>
+          <span class="arrow">→</span>
+          <div class="node">validate<span class="s">check</span></div>
+        </div>
+        <p style="margin-top:8px;">Stage contracts; a failing stage <b>halts</b> the line rather than passing garbage downstream.</p>
+      </div>
+
+      <div class="card t-amber">
+        <h3>Quality-contract subagent</h3>
+        <div class="flow" style="justify-content:flex-start;">
+          <div class="node hub">geos</div>
+          <span class="arrow">→</span>
+          <div class="node">geos-postprocess<span class="s">figures + stats</span></div>
+        </div>
+        <p style="margin-top:8px;">A subagent that exists to make a standard <b>non-skippable</b> — re-instantiated with fresh attention every dispatch.</p>
+      </div>
+    </div>
+    <p class="footer">Agents4GEOS · Coordination</p><p class="pagenum">6 / 6</p>
+  </section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: false,
+    transition: 'slide',
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    plugins: [ RevealHighlight, RevealNotes ]
+  });
+</script>
+</body>
+</html>
