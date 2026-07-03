@@ -5,8 +5,6 @@ operational instructions for Claude Code (defining agent boundaries, model
 routing, and coordination rules) and as architecture documentation for
 human developers.
 
-**Spec:** `docs/superpowers/specs/2026-04-01-agents-md-design.md`
-
 ---
 
 ## 1. Taxonomy

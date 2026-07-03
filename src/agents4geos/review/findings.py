@@ -2,8 +2,7 @@
 
 The geos-reviewer subagent returns a JSON list of findings; this module is the
 single source of truth for that shape. Used by the review eval harness now, and
-the designed-in sink for a future Dolt errors/lessons table (see
-docs/superpowers/specs/2026-06-09-independent-reviewer-subagent-design.md sec.5).
+the designed-in sink for a future Dolt errors/lessons table.
 """
 from __future__ import annotations
 

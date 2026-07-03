@@ -3,7 +3,6 @@
 This is the contract between the fan-out subagents and the orchestrator: each
 subagent returns a JSON object that the orchestrator validates here before applying
 it to the document. Mirrors src/agents4geos/review/findings.py (the reviewer seam).
-See docs/superpowers/specs/2026-06-09-per-tier-routing-fanout-pilot-design.md.
 """
 from __future__ import annotations
 

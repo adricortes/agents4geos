@@ -121,26 +121,10 @@ uv sync --all-extras
 That's it — no GEOS build and no sibling repositories are required. The parsed
 GEOS schema is bundled (`src/agents4geos/.cache/schema.json`), and the
 schema/XML engine lives in this repo (`src/agents4geos/geos/`). The `fluids`
-extra pulls `pyResToolbox` (SI fork) from git automatically. Users who later
-build GEOS can set `GEOS_SCHEMA` to override the bundled schema.
-
-### Private dependency access (one-time)
-
-The `fluids` extra fetches `pyResToolbox` from a **private** repo over `https`.
-`uv sync` shells out to `git`, which needs an https credential — an SSH key
-alone is not enough and you'll see `could not read Username for
-'https://github.com'`. Configure auth **once** with either approach:
-
-```bash
-# Option A (recommended): GitHub CLI credential helper
-gh auth login        # if not already logged in
-gh auth setup-git    # makes git use your gh token for https
-
-# Option B: rewrite adricortes https URLs to SSH (uses your SSH key)
-git config --global url."git@github.com:adricortes/".insteadOf "https://github.com/adricortes/"
-```
-
-Then `uv sync --all-extras` succeeds.
+extra pulls `pyResToolbox` (SI fork) from git automatically over a plain,
+unauthenticated `https` URL — both `agents4geos` and `pyResToolbox` are public,
+so no git credentials or collaborator access are needed. Users who later build
+GEOS can set `GEOS_SCHEMA` to override the bundled schema.
 
 Then register the MCP server — see [Installation → Step 3](#3-set-up-a-workspace).
 
@@ -154,12 +138,17 @@ Then register the MCP server — see [Installation → Step 3](#3-set-up-a-works
 
 ### Dependencies
 
-| Dependency | Source | What it provides |
-|------------|--------|------------------|
-| `agents4geos.geos` (in-repo) | this repo, `src/agents4geos/geos/` | Schema parser, XML reader/writer, templates, validation (adopted from the superseded geos-tui) |
-| [pyResToolbox](https://github.com/adricortes/pyResToolbox) (SI fork) | git pin (`fluids` extra) | Fluid PVT, relative permeability, well performance. Fork of [mwburgoyne/pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) with comprehensive SI unit refactoring. |
-| [PyVista](https://github.com/pyvista/pyvista) | PyPI `pyvista>=0.43` | Mesh creation, VTK I/O, headless visualization |
-| [cmcrameri](https://github.com/callumrollo/cmcrameri) | PyPI `cmcrameri>=1.4` | Crameri scientific colour maps (perceptually uniform, colour-blind-safe) for publication-quality field figures |
+| Dependency | Source | License | What it provides |
+|------------|--------|---------|------------------|
+| `agents4geos.geos` (in-repo) | this repo, `src/agents4geos/geos/` | BSD-3-Clause (this repo) | Schema parser, XML reader/writer, templates, validation (adopted from the superseded geos-tui) |
+| [pyResToolbox](https://github.com/adricortes/pyResToolbox) (SI fork) | git pin (`fluids` extra), public | GPL-3.0 | Fluid PVT, relative permeability, well performance. Fork of [mwburgoyne/pyResToolbox](https://github.com/mwburgoyne/pyResToolbox) with comprehensive SI unit refactoring. |
+| [PyVista](https://github.com/pyvista/pyvista) | PyPI `pyvista>=0.43` | MIT | Mesh creation, VTK I/O, headless visualization |
+| [cmcrameri](https://github.com/callumrollo/cmcrameri) | PyPI `cmcrameri>=1.4` | MIT | Crameri scientific colour maps (perceptually uniform, colour-blind-safe) for publication-quality field figures |
+
+`pyResToolbox` is GPL-3.0-licensed and used as an optional runtime dependency
+(the `fluids` extra) rather than vendored or statically linked — installing it
+does not relicense this repo's own BSD-3-Clause code, but redistributors of a
+bundle that includes it should honor its GPL terms.
 
 ## Installation
 
@@ -291,7 +280,12 @@ agents4geos/
 
 ## License
 
-TBD
+BSD 3-Clause — see [LICENSE.txt](LICENSE.txt). Copyright TotalEnergies E&P
+Research & Technology US, LLC.
+
+Optional dependencies carry their own licenses — see the
+[Dependencies](#dependencies) table above (notably `pyResToolbox`, GPL-3.0,
+pulled only if you install the `fluids` extra).
 
 ## Acknowledgements
 

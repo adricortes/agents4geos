@@ -3,8 +3,7 @@
 Crameri Scientific Colour Maps are perceptually uniform, colour-blind-safe, and
 readable in grayscale — the publication standard. The `cmcrameri` package
 registers them with matplotlib (as `cmc.*`) on import. Rainbow/`jet`-family maps
-are perceptually non-uniform and are rejected. See
-docs/superpowers/specs/2026-06-10-tnt-subagent-conversion-decisions-design.md.
+are perceptually non-uniform and are rejected.
 """
 from __future__ import annotations
 
