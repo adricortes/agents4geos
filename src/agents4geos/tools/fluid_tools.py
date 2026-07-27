@@ -503,35 +503,77 @@ def create_table_rel_perm_xml(
     phase_names: list[str],
     table_data: dict,
 ) -> dict:
-    """Generate GEOS TableRelativePermeability XML + TableFunction definitions from user-provided table data.
+    """Generate GEOS TableRelativePermeability XML + TableFunction definitions.
 
-    Args:
-        phase_names: Phase names (e.g., ["water", "gas"] or ["oil", "gas", "water"])
-        table_data: Dict mapping phase name to {"saturation": [...], "kr": [...]} arrays.
-                    Example: {"water": {"saturation": [0.2, 0.4, 0.6, 0.8, 1.0], "kr": [0, 0.1, 0.3, 0.7, 1.0]},
-                              "gas": {"saturation": [0.0, 0.2, 0.4, 0.6, 0.8], "kr": [1.0, 0.6, 0.3, 0.1, 0]}}
+    2-phase: phase_names has two entries (wetting phase first) and table_data
+    maps each phase name to {"saturation": [...], "kr": [...]}; emits
+    wettingNonWettingRelPermTableNames.
+
+    3-phase: phase_names must be ["water", "oil", "gas"] (wetting,
+    intermediate, non-wetting) and table_data must have keys "water",
+    "oil_ow" (oil kr vs oil saturation in the water-oil system), "gas",
+    "oil_go" (oil kr vs oil saturation in the gas-oil system); emits
+    wettingIntermediateRelPermTableNames and
+    nonWettingIntermediateRelPermTableNames.
+
+    Every table maps a phase's own saturation (strictly increasing
+    coordinates) to its relative permeability.
     """
+    def table_function_xml(func_name: str, data: dict) -> str:
+        coords = ", ".join(str(s) for s in data["saturation"])
+        values = ", ".join(str(k) for k in data["kr"])
+        return (f'<TableFunction name="{func_name}"\n'
+                f'  coordinates="{{ {coords} }}"\n'
+                f'  values="{{ {values} }}"/>')
+
+    instructions = ("Add TableFunctions to <Functions> section and "
+                    "TableRelativePermeability to <Constitutive>. "
+                    "Include 'relperm' in materialList.")
+
+    if len(phase_names) == 3:
+        if phase_names != ["water", "oil", "gas"]:
+            return {"error": "3-phase requires phase_names == ['water', 'oil', 'gas'] "
+                             "(wetting, intermediate, non-wetting)."}
+        required = ("water", "oil_ow", "gas", "oil_go")
+        missing = [k for k in required if k not in table_data]
+        if missing:
+            return {"error": f"3-phase requires table_data keys {list(required)}; "
+                             f"missing: {missing}"}
+        for key in required:
+            data = table_data[key]
+            if len(data["saturation"]) != len(data["kr"]):
+                return {"error": f"'{key}': saturation and kr arrays must have same length"}
+        func_names = {"water": "waterRelPermTable", "oil_ow": "oilRelPermTable_ow",
+                      "gas": "gasRelPermTable", "oil_go": "oilRelPermTable_go"}
+        table_functions = [table_function_xml(func_names[k], table_data[k])
+                           for k in required]
+        phases_str = ", ".join(phase_names)
+        relperm_xml = (
+            f'<TableRelativePermeability name="relperm"\n'
+            f'  phaseNames="{{ {phases_str} }}"\n'
+            f'  wettingIntermediateRelPermTableNames='
+            f'"{{ waterRelPermTable, oilRelPermTable_ow }}"\n'
+            f'  nonWettingIntermediateRelPermTableNames='
+            f'"{{ gasRelPermTable, oilRelPermTable_go }}"/>'
+        )
+        return {
+            "relperm_xml": relperm_xml,
+            "table_function_xmls": table_functions,
+            "table_names": [func_names[k] for k in required],
+            "instructions": instructions,
+        }
+
     table_functions = []
     table_names = []
-
     for phase in phase_names:
         if phase not in table_data:
             return {"error": f"Missing table data for phase '{phase}'"}
         data = table_data[phase]
-        sat = data["saturation"]
-        kr = data["kr"]
-        if len(sat) != len(kr):
+        if len(data["saturation"]) != len(data["kr"]):
             return {"error": f"Phase '{phase}': saturation and kr arrays must have same length"}
-
         func_name = f"{phase}RelPermTable"
         table_names.append(func_name)
-        coords_str = ", ".join(str(s) for s in sat)
-        values_str = ", ".join(str(k) for k in kr)
-        table_functions.append(
-            f'<TableFunction name="{func_name}"\n'
-            f'  coordinates="{{ {coords_str} }}"\n'
-            f'  values="{{ {values_str} }}"/>'
-        )
+        table_functions.append(table_function_xml(func_name, data))
 
     phases_str = ", ".join(phase_names)
     tables_str = ", ".join(table_names)
@@ -540,14 +582,92 @@ def create_table_rel_perm_xml(
         f'  phaseNames="{{ {phases_str} }}"\n'
         f'  wettingNonWettingRelPermTableNames="{{ {tables_str} }}"/>'
     )
-
     return {
         "relperm_xml": relperm_xml,
         "table_function_xmls": table_functions,
         "table_names": table_names,
-        "instructions": "Add TableFunctions to <Functions> section and TableRelativePermeability to <Constitutive>. "
-                        "Include 'relperm' in materialList.",
+        "instructions": instructions,
     }
+
+
+@mcp.tool
+def build_table_relperm_xml(
+    model: str,
+    phase_names: list[str],
+    swc: float,
+    sor: float,
+    exponents: dict,
+    n_rows: int = 30,
+) -> dict:
+    """Generate rel-perm curves and GEOS TableRelativePermeability XML in one call.
+
+    Phase sets: ["water", "gas"] (gas-water SGWFN table), ["water", "oil"]
+    (SWOF), or ["water", "oil", "gas"] (SWOF water-oil + SGOF gas-oil).
+    Curves come from generate_rel_perm (Corey/LET/Jerauld); XML from
+    create_table_rel_perm_xml. Capillary pressure is not included (use
+    generate_cap_pressure).
+
+    Args:
+        model: "BrooksCorey" (or "Corey"), "LET", or "Jerauld".
+        phase_names: One of the three supported phase sets above.
+        swc: Connate water saturation.
+        sor: Residual saturation of the non-wetting/other phase.
+        exponents: Family parameters as in generate_rel_perm.
+        n_rows: Approximate rows per table.
+    """
+    phases = list(phase_names)
+
+    if phases == ["water", "gas"]:
+        rows = generate_rel_perm(model=model, swc=swc, sorg=sor,
+                                 exponents=exponents, n_rows=n_rows, table="SGWFN")
+        if isinstance(rows, dict):
+            return rows  # error passthrough
+        sg = [r["Sg"] for r in rows]
+        # Water table must be kr vs its OWN ascending saturation: Sw = 1 - Sg.
+        sw = [1.0 - s for s in reversed(sg)]
+        krw = [r["Krw"] for r in reversed(rows)]
+        table_data = {"water": {"saturation": sw, "kr": krw},
+                      "gas": {"saturation": sg, "kr": [r["Krg"] for r in rows]}}
+        return create_table_rel_perm_xml(phase_names=phases, table_data=table_data)
+
+    if phases == ["water", "oil"]:
+        rows = generate_rel_perm(model=model, swc=swc, sorg=sor,
+                                 exponents=exponents, n_rows=n_rows, table="SWOF")
+        if isinstance(rows, dict):
+            return rows
+        sw = [r["Sw"] for r in rows]
+        so = [1.0 - s for s in reversed(sw)]
+        kro = [r["Kro"] for r in reversed(rows)]
+        table_data = {"water": {"saturation": sw, "kr": [r["Krw"] for r in rows]},
+                      "oil": {"saturation": so, "kr": kro}}
+        return create_table_rel_perm_xml(phase_names=phases, table_data=table_data)
+
+    if phases == ["water", "oil", "gas"]:
+        swof = generate_rel_perm(model=model, swc=swc, sorg=sor,
+                                 exponents=exponents, n_rows=n_rows, table="SWOF")
+        if isinstance(swof, dict):
+            return swof
+        sgof = generate_rel_perm(model=model, swc=swc, sorg=sor,
+                                 exponents=exponents, n_rows=n_rows, table="SGOF")
+        if isinstance(sgof, dict):
+            return sgof
+        sw = [r["Sw"] for r in swof]
+        so_ow = [1.0 - s for s in reversed(sw)]
+        kro_ow = [r["Kro"] for r in reversed(swof)]
+        sg = [r["Sg"] for r in sgof]
+        # Oil saturation in the gas-oil system at connate water: So = 1 - swc - Sg.
+        so_go = [1.0 - swc - s for s in reversed(sg)]
+        kro_go = [r["Kro"] for r in reversed(sgof)]
+        table_data = {
+            "water": {"saturation": sw, "kr": [r["Krw"] for r in swof]},
+            "oil_ow": {"saturation": so_ow, "kr": kro_ow},
+            "gas": {"saturation": sg, "kr": [r["Krg"] for r in sgof]},
+            "oil_go": {"saturation": so_go, "kr": kro_go},
+        }
+        return create_table_rel_perm_xml(phase_names=phases, table_data=table_data)
+
+    return {"error": "Unsupported phase set. Use ['water', 'gas'], "
+                     "['water', 'oil'], or ['water', 'oil', 'gas']."}
 
 
 @mcp.tool

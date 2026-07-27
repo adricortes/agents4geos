@@ -1,12 +1,14 @@
 """Tests for fluid & constitutive tools."""
 
 import math
+from xml.etree import ElementTree
 
 from agents4geos.tools.fluid_tools import (
     compute_gas_properties, compute_oil_properties, compute_brine_properties,
     compute_co2_brine_properties,
     generate_pvt_table, generate_rel_perm, generate_cap_pressure,
     recommend_fluid_model, fit_rel_perm, compute_well_ipr,
+    create_table_rel_perm_xml, build_table_relperm_xml,
 )
 
 
@@ -320,3 +322,62 @@ def test_compute_well_ipr_oil_stub():
         fluid_type="oil",
     )
     assert "error" in result
+
+
+def test_create_table_rel_perm_xml_three_phase():
+    data = {
+        "water": {"saturation": [0.2, 0.6, 1.0], "kr": [0.0, 0.3, 1.0]},
+        "oil_ow": {"saturation": [0.0, 0.4, 0.8], "kr": [0.0, 0.35, 1.0]},
+        "gas": {"saturation": [0.0, 0.4, 0.8], "kr": [0.0, 0.3, 1.0]},
+        "oil_go": {"saturation": [0.0, 0.4, 0.8], "kr": [0.0, 0.25, 1.0]},
+    }
+    result = create_table_rel_perm_xml(phase_names=["water", "oil", "gas"], table_data=data)
+    el = ElementTree.fromstring(result["relperm_xml"])
+    assert el.tag == "TableRelativePermeability"
+    # attribute names verified against the bundled GEOS schema.json
+    assert "wettingIntermediateRelPermTableNames" in el.attrib
+    assert "nonWettingIntermediateRelPermTableNames" in el.attrib
+    assert "wettingNonWettingRelPermTableNames" not in el.attrib
+    assert len(result["table_function_xmls"]) == 4
+    for xml in result["table_function_xmls"]:
+        assert ElementTree.fromstring(xml).tag == "TableFunction"
+
+
+def test_create_table_rel_perm_xml_two_phase_still_works():
+    data = {
+        "water": {"saturation": [0.2, 0.6, 1.0], "kr": [0.0, 0.3, 1.0]},
+        "gas": {"saturation": [0.0, 0.4, 0.8], "kr": [0.0, 0.3, 1.0]},
+    }
+    result = create_table_rel_perm_xml(phase_names=["water", "gas"], table_data=data)
+    el = ElementTree.fromstring(result["relperm_xml"])
+    assert "wettingNonWettingRelPermTableNames" in el.attrib
+    assert len(result["table_function_xmls"]) == 2
+
+
+def test_build_table_relperm_xml_two_phase_water_gas():
+    result = build_table_relperm_xml(
+        model="BrooksCorey", phase_names=["water", "gas"],
+        swc=0.2, sor=0.0, exponents={"nw": 2.0, "ng": 2.0}, n_rows=10,
+    )
+    el = ElementTree.fromstring(result["relperm_xml"])
+    assert "wettingNonWettingRelPermTableNames" in el.attrib
+    assert len(result["table_function_xmls"]) == 2
+    for xml in result["table_function_xmls"]:
+        coords = [float(t) for t in
+                  ElementTree.fromstring(xml).attrib["coordinates"].strip("{} ").split(",")]
+        assert all(b > a for a, b in zip(coords, coords[1:]))  # strictly increasing
+
+
+def test_build_table_relperm_xml_three_phase():
+    result = build_table_relperm_xml(
+        model="BrooksCorey", phase_names=["water", "oil", "gas"],
+        swc=0.15, sor=0.1, exponents={"nw": 2.0, "no": 2.0, "ng": 2.0}, n_rows=10,
+    )
+    el = ElementTree.fromstring(result["relperm_xml"])
+    assert "wettingIntermediateRelPermTableNames" in el.attrib
+    assert "nonWettingIntermediateRelPermTableNames" in el.attrib
+    assert len(result["table_function_xmls"]) == 4
+    for xml in result["table_function_xmls"]:
+        coords = [float(t) for t in
+                  ElementTree.fromstring(xml).attrib["coordinates"].strip("{} ").split(",")]
+        assert all(b > a for a, b in zip(coords, coords[1:]))
