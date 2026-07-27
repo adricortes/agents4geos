@@ -1,7 +1,10 @@
 """Tests for fluid & constitutive tools."""
 
+import math
+
 from agents4geos.tools.fluid_tools import (
     compute_gas_properties, compute_oil_properties, compute_brine_properties,
+    compute_co2_brine_properties,
     generate_pvt_table, generate_rel_perm, generate_cap_pressure,
     recommend_fluid_model,
 )
@@ -140,3 +143,67 @@ def test_recommend_fluid_model_single_phase():
     elem_types = [e["type"] for e in result["constitutive_elements"]]
     assert "CompressibleSinglePhaseFluid" in elem_types
     assert "CompressibleSolidConstantPermeability" in elem_types
+
+
+def test_co2_brine_si_matches_documented_example():
+    # Library docstring anchor: 175 Bar, 85 degC, 0 ppm -> Rs ~ 24.74 sm3/sm3.
+    # Rs is unit-invariant (sm3/sm3), so the SI call must reproduce it.
+    result = compute_co2_brine_properties(
+        pressure_Pa=175e5, temperature_K=85 + 273.15, salinity_wt_pct=0.0,
+    )
+    assert math.isclose(result["Rs_co2_sm3_sm3"], 24.74, rel_tol=2e-2)
+
+
+def test_co2_brine_si_units_are_physical():
+    # Verified reference point (rev bad0208): xCO2=0.01555, den=1060.1 kg/m3,
+    # visc=4.99e-4 Pa.s, Rs=19.93 sm3/sm3, Cf_usat=3.49e-10 1/Pa.
+    result = compute_co2_brine_properties(
+        pressure_Pa=30e6, temperature_K=350.0, salinity_wt_pct=10.0,
+    )
+    assert 0.0 < result["xCO2"] < 0.05
+    assert 0.0 < result["xCO2"] + result["xH2O"] <= 1.0
+    assert 950.0 < result["co2_saturated_brine_density_kg_m3"] < 1150.0
+    assert result["co2_free_brine_density_kg_m3"] < result["co2_saturated_brine_density_kg_m3"]
+    assert 1e-4 < result["co2_saturated_brine_viscosity_Pa_s"] < 2e-3
+    assert result["Bw_co2_saturated_m3_m3"] > 1.0
+    assert result["Rs_co2_sm3_sm3"] >= 0.0
+    assert result["compressibility_undersaturated_1_Pa"] > 0.0
+    assert result["warnings"] == []
+    meta = result["metadata"]
+    assert "Spycher & Pruess" in meta["solubility_method"]
+    assert "pyResToolbox" in meta["solubility_method"]
+    assert "Garcia" in meta["brine_density_method"]
+    assert "Mao-Duan" in meta["brine_viscosity_method"]
+
+
+def test_co2_brine_saturated_compressibility_flag():
+    result = compute_co2_brine_properties(
+        pressure_Pa=30e6, temperature_K=350.0, salinity_wt_pct=5.0,
+        include_saturated_compressibility=True,
+    )
+    assert "compressibility_saturated_1_Pa" in result
+    assert result["compressibility_saturated_1_Pa"] > 0.0
+
+    result_no = compute_co2_brine_properties(
+        pressure_Pa=30e6, temperature_K=350.0, salinity_wt_pct=5.0,
+        include_saturated_compressibility=False,
+    )
+    assert "compressibility_saturated_1_Pa" not in result_no
+
+
+def test_co2_brine_warns_above_saturation_salinity():
+    # ppm_sat at 350 K (76.85 degC) is ~273,973 ppm (~27.4 wt%); request 28 wt%.
+    # Verified: the library silently extrapolates here, so the tool must warn.
+    result = compute_co2_brine_properties(
+        pressure_Pa=30e6, temperature_K=350.0, salinity_wt_pct=28.0,
+    )
+    assert len(result["warnings"]) >= 1
+    assert any("salinity" in w.lower() for w in result["warnings"])
+
+
+def test_co2_brine_warns_outside_temperature_range():
+    # 5 degC is below the ~12-300 degC Spycher-Pruess calibration range.
+    result = compute_co2_brine_properties(
+        pressure_Pa=10e6, temperature_K=278.15, salinity_wt_pct=0.0,
+    )
+    assert any("temperature" in w.lower() for w in result["warnings"])

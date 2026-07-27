@@ -172,6 +172,97 @@ def compute_brine_properties(
 
 
 @mcp.tool
+def compute_co2_brine_properties(
+    pressure_Pa: float,
+    temperature_K: float,
+    salinity_wt_pct: float = 0.0,
+    include_saturated_compressibility: bool = True,
+) -> dict:
+    """Compute CO2-saturated brine properties and CO2/brine mutual solubility (all SI units).
+
+    Uses the Spycher-Pruess (2010) phase-partitioning model for CO2-brine mutual
+    solubility, with Garcia (2001) dissolved-CO2 density correction, Spivey brine
+    density on IAPWS-IF97 freshwater, Mao-Duan (2009) brine viscosity, and
+    Islam-Carlson (2012) dissolved-CO2 viscosity correction. Intended for CO2
+    storage / sequestration conditions (QC and reporting alongside the
+    CO2BrinePhillipsFluid / CO2BrineEzrokhiFluid deck path; GEOS computes its
+    own PVT internally from phasePVTParaFiles).
+
+    Args:
+        pressure_Pa: Pressure in Pascals.
+        temperature_K: Temperature in Kelvin.
+        salinity_wt_pct: NaCl-equivalent salinity, weight percent (0-100).
+        include_saturated_compressibility: If True, also compute the saturated
+            brine compressibility (Cf_sat); roughly doubles the calculation.
+    """
+    from pyrestoolbox import brine
+
+    ppm = salinity_wt_pct * 1.0e4  # wt% -> NaCl ppm (1 wt% = 10,000 ppm)
+    mix = brine.CO2_Brine_Mixture(
+        pres=pressure_Pa,
+        temp=temperature_K,
+        ppm=ppm,
+        units="SI",
+        cw_sat=include_saturated_compressibility,
+    )
+
+    # In SI mode the library returns bDen [kg/m3], bVis [Pa.s], Cf_* [1/Pa],
+    # Rs [sm3/sm3], bw [m3/m3 ratio]. bDen/bVis/bw are 3-lists indexed
+    # [CO2-saturated, CO2-free brine, pure water]. With salt, x sums to
+    # 1 - xSalt, so xCO2 + xH2O < 1 by design.
+    warnings: list[str] = []
+    if ppm > mix.ppm_sat:
+        warnings.append(
+            f"Requested salinity {ppm:.0f} ppm exceeds the maximum soluble salt "
+            f"at this temperature ({mix.ppm_sat:.0f} ppm, Whitson Eq 9.1); "
+            f"results are extrapolated."
+        )
+    temp_C = temperature_K - 273.15
+    if not 12.0 <= temp_C <= 300.0:
+        warnings.append(
+            f"Temperature {temp_C:.1f} degC is outside the Spycher-Pruess "
+            f"calibration range (~12-300 degC)."
+        )
+    if pressure_Pa > 600e5:
+        warnings.append(
+            f"Pressure {pressure_Pa / 1e5:.0f} bar is above the ~600 bar "
+            f"Spycher-Pruess calibration range."
+        )
+
+    result = {
+        "xCO2": float(mix.x[0]),
+        "xH2O": float(mix.x[1]),
+        "yCO2": float(mix.y[0]),
+        "yH2O": float(mix.y[1]),
+        "co2_saturated_brine_density_kg_m3": float(mix.bDen[0]),
+        "co2_free_brine_density_kg_m3": float(mix.bDen[1]),
+        "co2_saturated_brine_viscosity_Pa_s": float(mix.bVis[0]),
+        "Bw_co2_saturated_m3_m3": float(mix.bw[0]),
+        "Rs_co2_sm3_sm3": float(mix.Rs),
+        "compressibility_undersaturated_1_Pa": float(mix.Cf_usat),
+        "max_salinity_ppm_at_T": float(mix.ppm_sat),
+        "warnings": warnings,
+        "metadata": {
+            "solubility_method": "Spycher & Pruess (2010), Transp Porous Med 82:173-196 "
+                                 "(pyResToolbox.brine.CO2_Brine_Mixture)",
+            "brine_density_method": "Spivey NaCl correction on IAPWS-IF97 freshwater with "
+                                    "Garcia (2001) dissolved-CO2 volume correction "
+                                    "(pyResToolbox.brine.brine_props_co2)",
+            "brine_viscosity_method": "Mao-Duan (2009) with Islam-Carlson (2012) dissolved-CO2 "
+                                      "correction (pyResToolbox.brine.brine_props_co2)",
+            "Rs_convention": "sm3 dissolved CO2 / sm3 brine; standard-condition residual Rs "
+                             "subtracted (Burgoyne 2023 offset)",
+            "salinity_convention": "NaCl-equivalent weight percent, converted to ppm internally",
+            "valid_range_note": "Spycher-Pruess calibrated ~12-300 degC and to ~600 bar; "
+                                "salinity must stay below max_salinity_ppm_at_T",
+        },
+    }
+    if include_saturated_compressibility and mix.Cf_sat is not None:
+        result["compressibility_saturated_1_Pa"] = float(mix.Cf_sat)
+    return result
+
+
+@mcp.tool
 def generate_pvt_table(
     fluid_type: str,
     pressure_range_Pa: list[float],
