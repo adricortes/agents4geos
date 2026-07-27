@@ -6,7 +6,7 @@ from agents4geos.tools.fluid_tools import (
     compute_gas_properties, compute_oil_properties, compute_brine_properties,
     compute_co2_brine_properties,
     generate_pvt_table, generate_rel_perm, generate_cap_pressure,
-    recommend_fluid_model, fit_rel_perm,
+    recommend_fluid_model, fit_rel_perm, compute_well_ipr,
 )
 
 
@@ -287,4 +287,36 @@ def test_fit_rel_perm_recovers_corey_exponent():
 def test_fit_rel_perm_rejects_unknown_model():
     result = fit_rel_perm(measured_S=[0.0, 0.5, 1.0], measured_Kr=[0.0, 0.2, 1.0],
                           model="VanGenuchten")
+    assert "error" in result
+
+
+def test_compute_well_ipr_gas_sweep():
+    result = compute_well_ipr(
+        reservoir_pressure_Pa=2e7, temperature_K=350.0, permeability_m2=1e-13,
+        thickness_m=10.0, wellbore_radius_m=0.1, drainage_radius_m=500.0,
+        n_points=10,
+    )
+    assert len(result["pwf_Pa"]) == 10
+    assert len(result["rate_m3_s"]) == 10
+    assert abs(result["rate_m3_s"][0]) < 1e-12   # zero rate at pwf == reservoir pressure
+    rates = result["rate_m3_s"]
+    assert all(b >= a for a, b in zip(rates, rates[1:]))  # rate rises as pwf falls
+    assert rates[-1] > 0
+
+
+def test_compute_well_ipr_composition_matters():
+    base = dict(reservoir_pressure_Pa=2e7, temperature_K=350.0, permeability_m2=1e-13,
+                thickness_m=10.0, wellbore_radius_m=0.1, drainage_radius_m=500.0,
+                n_points=5)
+    dry = compute_well_ipr(**base, co2=0.0)
+    sour = compute_well_ipr(**base, co2=0.5)
+    assert dry["rate_m3_s"][-1] != sour["rate_m3_s"][-1]
+
+
+def test_compute_well_ipr_oil_stub():
+    result = compute_well_ipr(
+        reservoir_pressure_Pa=2e7, temperature_K=350.0, permeability_m2=1e-13,
+        thickness_m=10.0, wellbore_radius_m=0.1, drainage_radius_m=500.0,
+        fluid_type="oil",
+    )
     assert "error" in result

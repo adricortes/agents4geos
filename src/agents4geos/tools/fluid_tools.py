@@ -458,22 +458,44 @@ def compute_well_ipr(
     drainage_radius_m: float,
     fluid_type: str = "gas",
     skin: float = 0.0,
+    gas_specific_gravity: float = 0.75,
+    co2: float = 0.0,
+    h2s: float = 0.0,
+    n2: float = 0.0,
+    n_points: int = 20,
 ) -> dict:
-    """Compute well inflow performance (IPR) and operating point."""
+    """Compute a gas well inflow performance (IPR) curve (all SI units).
+
+    Sweeps flowing bottom-hole pressure from reservoir pressure down to one
+    atmosphere and evaluates the Darcy pseudo-steady-state radial rate at
+    each point. Oil IPR is deliberately not implemented in this slice.
+    """
     from pyrestoolbox import gas
 
-    if fluid_type == "gas":
-        rate = gas.gas_rate_radial(
-            k=permeability_m2, h=thickness_m, pr=reservoir_pressure_Pa,
-            pwf=reservoir_pressure_Pa * 0.5, r_w=wellbore_radius_m,
-            r_ext=drainage_radius_m, degf=temperature_K, S=skin, units="SI",
-        )
-        return {
-            "rate_m3_s": float(rate),
-            "flowing_pressure_Pa": reservoir_pressure_Pa * 0.5,
-            "reservoir_pressure_Pa": reservoir_pressure_Pa,
-        }
-    return {"error": "Oil IPR not yet implemented"}
+    if fluid_type != "gas":
+        return {"error": "Oil IPR not implemented in this slice; only fluid_type='gas' "
+                         "is supported (use pyrestoolbox.oil.oil_rate_radial directly)."}
+
+    floor_Pa = 101325.0  # sweep down to one atmosphere
+    pwf_values = np.linspace(reservoir_pressure_Pa, floor_Pa, n_points)
+    rates = [float(gas.gas_rate_radial(
+                 k=permeability_m2, h=thickness_m, pr=reservoir_pressure_Pa,
+                 pwf=float(pwf), r_w=wellbore_radius_m, r_ext=drainage_radius_m,
+                 degf=temperature_K, S=skin, sg=gas_specific_gravity,
+                 co2=co2, h2s=h2s, n2=n2, units="SI"))
+             for pwf in pwf_values]
+    return {
+        "pwf_Pa": [float(p) for p in pwf_values],
+        "rate_m3_s": rates,
+        "reservoir_pressure_Pa": reservoir_pressure_Pa,
+        "metadata": {
+            "method": "Darcy pseudo-steady-state radial flow with gas pseudopressure "
+                      "(pyResToolbox.gas.gas_rate_radial)",
+            "sweep": f"pwf from reservoir pressure down to {floor_Pa:.0f} Pa (1 atm) "
+                     f"in {n_points} points",
+            "composition": {"sg": gas_specific_gravity, "co2": co2, "h2s": h2s, "n2": n2},
+        },
+    }
 
 
 @mcp.tool
