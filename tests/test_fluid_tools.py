@@ -6,7 +6,7 @@ from agents4geos.tools.fluid_tools import (
     compute_gas_properties, compute_oil_properties, compute_brine_properties,
     compute_co2_brine_properties,
     generate_pvt_table, generate_rel_perm, generate_cap_pressure,
-    recommend_fluid_model,
+    recommend_fluid_model, fit_rel_perm,
 )
 
 
@@ -245,3 +245,22 @@ def test_generate_rel_perm_honors_endpoints():
     assert abs(min(sws) - 0.15) < 1e-9   # grid starts at swc (sorg was silently ignored before)
     assert abs(max(sws) - 1.0) < 1e-9
     assert result[0]["Krw"] == 0.0       # krw = 0 at connate water
+
+
+def test_fit_rel_perm_recovers_corey_exponent():
+    n_true = 2.0
+    curve = generate_rel_perm(
+        model="BrooksCorey", swc=0.0, sorg=0.0,
+        exponents={"nw": n_true, "no": 2.0}, n_rows=20,
+    )
+    S = [r["Sw"] for r in curve]
+    Kr = [r["Krw"] for r in curve]
+    result = fit_rel_perm(measured_S=S, measured_Kr=Kr, model="BrooksCorey")
+    assert abs(result["parameters"]["n"] - n_true) < 0.05
+    assert result["ssq"] < 1e-6
+
+
+def test_fit_rel_perm_rejects_unknown_model():
+    result = fit_rel_perm(measured_S=[0.0, 0.5, 1.0], measured_Kr=[0.0, 0.2, 1.0],
+                          model="VanGenuchten")
+    assert "error" in result

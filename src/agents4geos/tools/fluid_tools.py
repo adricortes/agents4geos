@@ -375,14 +375,36 @@ def fit_rel_perm(
     measured_S: list[float],
     measured_Kr: list[float],
     model: str = "BrooksCorey",
+    krmax: float = 1.0,
+    s_min: float = 0.0,
+    s_max: float = 1.0,
 ) -> dict:
-    """Fit a relative permeability model to measured data."""
+    """Fit a relative permeability model (BrooksCorey, LET, or Jerauld) to measured data.
+
+    Args:
+        measured_S: Saturation values (water or gas) of the measured points.
+        measured_Kr: Measured relative permeability at each saturation.
+        model: "BrooksCorey" (or "Corey"), "LET", or "Jerauld".
+        krmax: Endpoint kr the model is scaled by.
+        s_min: Critical/connate saturation endpoint used to normalize S.
+        s_max: Maximum saturation endpoint used to normalize S.
+    """
     from pyrestoolbox import simtools
 
-    family = "COR" if model == "BrooksCorey" else "LET"
-    result = simtools.fit_rel_perm(s_measured=measured_S, kr_measured=measured_Kr,
-                                   krfamily=family)
-    return {"parameters": str(result), "model": model}
+    fam = _RELPERM_FAMILY.get(model)
+    if fam is None:
+        return {"error": f"Unsupported model '{model}'. Supported: BrooksCorey, LET, Jerauld."}
+
+    res = simtools.fit_rel_perm(sw=measured_S, kr=measured_Kr, krfamily=fam,
+                                krmax=krmax, sw_min=s_min, sw_max=s_max)
+    return {
+        "model": model,
+        "parameters": {k: float(v) for k, v in res["params"].items()},
+        "ssq": float(res["ssq"]),
+        "krmax": float(res["krmax"]),
+        "sw_min": float(res["sw_min"]),
+        "sw_max": float(res["sw_max"]),
+    }
 
 
 @mcp.tool
