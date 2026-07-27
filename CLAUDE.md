@@ -85,3 +85,10 @@ bd close <id>         # Complete work
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 <!-- END BEADS INTEGRATION -->
+
+## Local-only working material — NEVER commit or push
+`.handoffs/`, `docs/superpowers/`, and `.superpowers/` are Adriano's private
+working notes (agent handoffs, implementation plans, orchestration scratch).
+They are gitignored and must never touch the remote: never `git add` them
+(including `-f`), never copy their contents into tracked files, and never
+include them in commits, PRs, or pushes.

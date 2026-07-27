@@ -17,3 +17,5 @@ knowledge/runtime_errors.jsonl
 
 # Local-only agent handoffs
 .handoffs/
+docs/superpowers/
+.superpowers/
