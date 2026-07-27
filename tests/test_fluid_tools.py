@@ -136,6 +136,30 @@ def test_generate_pvt_table_water():
     assert "Spivey" in result["metadata"]["correlation"]
 
 
+def test_generate_pvt_table_gas_honors_sg():
+    lo = generate_pvt_table(fluid_type="gas", pressure_range_Pa=[1e6, 3e7],
+                            temperature_K=373.0, n_rows=3, gas_specific_gravity=0.6)
+    hi = generate_pvt_table(fluid_type="gas", pressure_range_Pa=[1e6, 3e7],
+                            temperature_K=373.0, n_rows=3, gas_specific_gravity=0.85)
+    assert lo["rows"][0]["density_kg_m3"] != hi["rows"][0]["density_kg_m3"]
+
+
+def test_generate_pvt_table_oil():
+    result = generate_pvt_table(fluid_type="oil", pressure_range_Pa=[5e6, 3e7],
+                                temperature_K=373.0, n_rows=4,
+                                api=35.0, gas_sg=0.7, rsb_sm3_sm3=100.0)
+    assert len(result["rows"]) == 4
+    assert result["rows"][0]["density_kg_m3"] > 0
+    assert "Valko-McCain" in result["metadata"]["bubble_point_method"]
+
+
+def test_generate_pvt_table_oil_missing_inputs():
+    result = generate_pvt_table(fluid_type="oil", pressure_range_Pa=[5e6, 3e7],
+                                temperature_K=373.0)
+    assert "error" in result
+    assert "api" in result["error"]
+
+
 def test_recommend_fluid_model_single_phase():
     result = recommend_fluid_model(description="single phase water flow")
     assert "SinglePhaseFVM" in result["solver"]

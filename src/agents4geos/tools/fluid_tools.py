@@ -268,24 +268,45 @@ def generate_pvt_table(
     pressure_range_Pa: list[float],
     temperature_K: float,
     n_rows: int = 50,
+    gas_specific_gravity: float = 0.7,
+    co2: float = 0.0,
+    h2s: float = 0.0,
+    n2: float = 0.0,
+    api: float | None = None,
+    gas_sg: float | None = None,
+    rsb_sm3_sm3: float | None = None,
 ) -> dict:
     """Generate a PVT table over a pressure range (all SI units).
 
-    Returns a dict with "rows" (list of property dicts per pressure) and
-    "metadata" (correlation provenance, reported once for the whole table).
+    fluid_type "gas" uses gas_specific_gravity and the co2/h2s/n2 molar
+    fractions; "oil" requires api, gas_sg and rsb_sm3_sm3; "water" uses
+    pure-water defaults. Returns a dict with "rows" (list of property dicts
+    per pressure) and "metadata" (correlation provenance, reported once for
+    the whole table).
     """
+    if fluid_type == "oil":
+        missing = [name for name, value in (("api", api), ("gas_sg", gas_sg),
+                                            ("rsb_sm3_sm3", rsb_sm3_sm3)) if value is None]
+        if missing:
+            return {"error": f"fluid_type='oil' requires: {', '.join(missing)}"}
+    elif fluid_type not in ("gas", "water"):
+        return {"error": f"Unsupported fluid_type '{fluid_type}'. Supported: gas, oil, water."}
+
     pressures = np.linspace(pressure_range_Pa[0], pressure_range_Pa[1], n_rows)
     rows = []
-    metadata = {}
+    metadata: dict = {}
     for p in pressures:
         pf = float(p)
         if fluid_type == "gas":
-            result = compute_gas_properties(pressure_Pa=pf, temperature_K=temperature_K,
-                                            specific_gravity=0.7)
-        elif fluid_type == "water":
+            result = compute_gas_properties(
+                pressure_Pa=pf, temperature_K=temperature_K,
+                specific_gravity=gas_specific_gravity, co2=co2, h2s=h2s, n2=n2)
+        elif fluid_type == "oil":
+            result = compute_oil_properties(
+                pressure_Pa=pf, temperature_K=temperature_K, api=api,
+                gas_sg=gas_sg, rsb_sm3_sm3=rsb_sm3_sm3)
+        else:  # water
             result = compute_brine_properties(pressure_Pa=pf, temperature_K=temperature_K)
-        else:
-            result = {}
         if not metadata and "metadata" in result:
             metadata = result.pop("metadata")
         else:
