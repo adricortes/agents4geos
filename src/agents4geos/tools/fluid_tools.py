@@ -295,6 +295,28 @@ def generate_pvt_table(
     return {"rows": rows, "metadata": metadata}
 
 
+_RELPERM_FAMILY = {"BrooksCorey": "COR", "Corey": "COR", "LET": "LET", "Jerauld": "JER"}
+
+_FAMILY_EXPONENTS = {
+    "COR": ("nw", "no", "ng"),
+    "LET": ("Lw", "Ew", "Tw", "Lo", "Eo", "To", "Lg", "Eg", "Tg"),
+    "JER": ("aw", "bw", "ao", "bo", "ag", "bg"),
+}
+_FAMILY_DEFAULTS = {
+    "COR": {"nw": 3.0, "no": 2.0, "ng": 2.0},
+    "LET": {"Lw": 2.0, "Ew": 1.5, "Tw": 1.5, "Lo": 2.5, "Eo": 1.25, "To": 1.75,
+            "Lg": 2.0, "Eg": 1.5, "Tg": 1.5},
+    "JER": {"aw": 1.0, "bw": 1.0, "ao": 1.0, "bo": 1.0, "ag": 1.0, "bg": 1.0},
+}
+# Library column -> output key, per table type. rel_perm_table produces no Pc
+# column; capillary pressure comes from generate_cap_pressure.
+_TABLE_OUTPUT_KEYS = {
+    "SWOF": {"Sw": "Sw", "Krwo": "Krw", "Krow": "Kro"},
+    "SGOF": {"Sg": "Sg", "Krgo": "Krg", "Krog": "Kro"},
+    "SGWFN": {"Sg": "Sg", "Krgw": "Krg", "Krwg": "Krw"},
+}
+
+
 @mcp.tool
 def generate_rel_perm(
     model: str,
@@ -302,33 +324,50 @@ def generate_rel_perm(
     sorg: float,
     exponents: dict,
     n_rows: int = 50,
-) -> list[dict]:
-    """Generate a relative permeability table."""
+    table: str = "SWOF",
+) -> list[dict] | dict:
+    """Generate a relative permeability table (Corey, LET, or Jerauld family).
+
+    Args:
+        model: Rel-perm family: "BrooksCorey" (or "Corey"), "LET", or "Jerauld".
+        swc: Connate water saturation.
+        sorg: Residual saturation of the other (non-wetting) phase. Mapped to
+              the library's sorw for SWOF and sorg for SGOF; unused for SGWFN.
+        exponents: Family parameters. Corey: nw/no/ng; LET: Lw,Ew,Tw,Lo,Eo,To
+                   (plus Lg,Eg,Tg for gas tables); Jerauld: aw,bw,ao,bo
+                   (plus ag,bg for gas tables). Missing keys use defaults.
+        n_rows: Approximate row count (endpoint saturations are appended, so
+                the result may contain a few more rows).
+        table: "SWOF" (water-oil), "SGOF" (gas-oil), or "SGWFN" (gas-water).
+
+    Capillary pressure is not part of these tables; use generate_cap_pressure.
+    """
     from pyrestoolbox import simtools
 
-    family_map = {"BrooksCorey": "COR", "VanGenuchten": "COR", "LET": "LET"}
-    family = family_map.get(model, "COR")
+    fam = _RELPERM_FAMILY.get(model)
+    if fam is None:
+        return {"error": f"Unsupported rel-perm model '{model}'. "
+                         f"Supported: BrooksCorey, LET, Jerauld. "
+                         f"For Van Genuchten capillary pressure use generate_cap_pressure."}
+    if table not in _TABLE_OUTPUT_KEYS:
+        return {"error": f"Unsupported table '{table}'. Supported: SWOF, SGOF, SGWFN."}
 
-    kwargs: dict = {"rows": n_rows, "krtable": "SWOF", "krfamily": family,
-                    "swc": swc, "sorg": sorg}
-    if family == "COR":
-        kwargs["nw"] = exponents.get("nw", 3.0)
-        kwargs["no"] = exponents.get("no", 2.0)
-    elif family == "LET":
-        kwargs.update({
-            "Lw": exponents.get("Lw", 2.0), "Ew": exponents.get("Ew", 1.5),
-            "Tw": exponents.get("Tw", 1.5), "Lo": exponents.get("Lo", 2.5),
-            "Eo": exponents.get("Eo", 1.25), "To": exponents.get("To", 1.75),
-        })
+    kwargs: dict = {"rows": n_rows, "krtable": table, "krfamily": fam}
+    if table == "SWOF":
+        kwargs.update({"swc": swc, "swcr": swc, "sorw": sorg})
+    elif table == "SGOF":
+        kwargs.update({"swc": swc, "sorg": sorg})
+    else:  # SGWFN
+        kwargs.update({"swc": swc})
+
+    defaults = _FAMILY_DEFAULTS[fam]
+    kwargs.update({name: float(exponents.get(name, defaults[name]))
+                   for name in _FAMILY_EXPONENTS[fam]})
 
     df = simtools.rel_perm_table(**kwargs)
-    # DataFrame columns depend on krtable type — SWOF has Sw, Krw, Krow, Pc
-    cols = df.columns.tolist()
-    result = []
-    for _, row in df.iterrows():
-        entry = {"Sw": float(row.iloc[0]), "Krw": float(row.iloc[1]), "Kro": float(row.iloc[2])}
-        result.append(entry)
-    return result
+    out_keys = _TABLE_OUTPUT_KEYS[table]
+    return [{out: float(row[col]) for col, out in out_keys.items()}
+            for _, row in df.iterrows()]
 
 
 @mcp.tool

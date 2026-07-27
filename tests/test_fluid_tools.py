@@ -85,7 +85,8 @@ def test_generate_rel_perm_brooks_corey():
         model="BrooksCorey", swc=0.15, sorg=0.1,
         exponents={"nw": 3.0, "no": 2.0}, n_rows=25,
     )
-    assert len(result) == 25
+    # Endpoint saturations are appended, so the count is approximate.
+    assert len(result) >= 25
     assert "Sw" in result[0]
     assert "Krw" in result[0]
     assert "Kro" in result[0]
@@ -207,3 +208,40 @@ def test_co2_brine_warns_outside_temperature_range():
         pressure_Pa=10e6, temperature_K=278.15, salinity_wt_pct=0.0,
     )
     assert any("temperature" in w.lower() for w in result["warnings"])
+
+
+def test_generate_rel_perm_rejects_van_genuchten():
+    result = generate_rel_perm(model="VanGenuchten", swc=0.1, sorg=0.1, exponents={})
+    assert "error" in result
+    assert "generate_cap_pressure" in result["error"]
+
+
+def test_generate_rel_perm_jerauld():
+    result = generate_rel_perm(
+        model="Jerauld", swc=0.1, sorg=0.1,
+        exponents={"aw": 1.0, "bw": 1.0, "ao": 1.0, "bo": 1.0}, n_rows=20,
+    )
+    assert isinstance(result, list)
+    assert len(result) >= 20
+    assert {"Sw", "Krw", "Kro"} <= set(result[0])
+
+
+def test_generate_rel_perm_sgwfn_gas_water():
+    result = generate_rel_perm(
+        model="BrooksCorey", swc=0.2, sorg=0.0,
+        exponents={"nw": 2.0, "ng": 2.0}, n_rows=20, table="SGWFN",
+    )
+    assert {"Sg", "Krg", "Krw"} <= set(result[0])
+    assert result[-1]["Krg"] >= result[0]["Krg"]   # gas kr rises with Sg
+    assert result[-1]["Krw"] <= result[0]["Krw"]   # water kr falls with Sg
+
+
+def test_generate_rel_perm_honors_endpoints():
+    result = generate_rel_perm(
+        model="BrooksCorey", swc=0.15, sorg=0.1,
+        exponents={"nw": 3.0, "no": 2.0}, n_rows=25,
+    )
+    sws = [r["Sw"] for r in result]
+    assert abs(min(sws) - 0.15) < 1e-9   # grid starts at swc (sorg was silently ignored before)
+    assert abs(max(sws) - 1.0) < 1e-9
+    assert result[0]["Krw"] == 0.0       # krw = 0 at connate water
