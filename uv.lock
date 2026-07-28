@@ -40,7 +40,7 @@ requires-dist = [
     { name = "lxml", specifier = ">=5.0" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "pandas", marker = "extra == 'fluids'", specifier = ">=2.0" },
-    { name = "pyrestoolbox", marker = "extra == 'fluids'", git = "https://github.com/adricortes/pyResToolbox.git?rev=f1e5919" },
+    { name = "pyrestoolbox", marker = "extra == 'fluids'", git = "https://github.com/adricortes/pyResToolbox.git?rev=e40b57a" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
     { name = "pyvista", specifier = ">=0.43" },
@@ -1725,7 +1725,7 @@ wheels = [
 [[package]]
 name = "pyrestoolbox"
 version = "3.1.0"
-source = { git = "https://github.com/adricortes/pyResToolbox.git?rev=f1e5919#f1e5919b7467204e9de79b1aeb2afa48a0ab9864" }
+source = { git = "https://github.com/adricortes/pyResToolbox.git?rev=e40b57a#e40b57afc1293f3479630aaec4e14cace1d7c005" }
 dependencies = [
     { name = "gwr-inversion" },
     { name = "mpmath" },

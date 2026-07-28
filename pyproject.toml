@@ -30,7 +30,7 @@ build-backend = "hatchling.build"
 packages = ["src/agents4geos"]
 
 [tool.uv.sources]
-pyrestoolbox = { git = "https://github.com/adricortes/pyResToolbox.git", rev = "f1e5919" }
+pyrestoolbox = { git = "https://github.com/adricortes/pyResToolbox.git", rev = "e40b57a" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
