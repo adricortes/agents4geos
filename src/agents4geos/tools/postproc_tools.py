@@ -192,12 +192,12 @@ def compute_material_balance(
     specific_gravity: float = 0.7,
 ) -> dict:
     """Compute original-in-place estimate from pressure and production history (SI units)."""
-    from pyrestoolbox import matbal
+    from agents4geos.fluids import si_adapter as matbal
 
     if fluid_type == "gas":
         result = matbal.gas_matbal(
             p=pressure_history_Pa, Gp=cumulative_production_m3,
-            degf=temperature_K, sg=specific_gravity, units="SI",
+            degf=temperature_K, sg=specific_gravity,
         )
         return {"original_in_place_m3": float(result.ogip), "r_squared": float(result.r_squared)}
     return {"error": "Oil material balance not yet integrated"}
@@ -216,14 +216,14 @@ def compute_well_performance(
     specific_gravity: float = 0.7,
 ) -> dict:
     """Quick well rate estimate for sanity-checking simulation output."""
-    from pyrestoolbox import gas
+    from agents4geos.fluids import si_adapter as gas
 
     if fluid_type == "gas":
         rate = gas.gas_rate_radial(
             k=permeability_m2, h=thickness_m, pr=reservoir_pressure_Pa,
             pwf=flowing_pressure_Pa, r_w=wellbore_radius_m,
             r_ext=drainage_radius_m, degf=temperature_K,
-            sg=specific_gravity, units="SI",
+            sg=specific_gravity,
         )
         return {"rate_m3_s": float(rate), "fluid_type": "gas"}
     return {"error": "Oil well performance not yet integrated"}

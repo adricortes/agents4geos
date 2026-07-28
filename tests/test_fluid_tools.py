@@ -175,6 +175,10 @@ def test_recommend_fluid_model_single_phase():
 def test_co2_brine_si_matches_documented_example():
     # Library docstring anchor: 175 Bar, 85 degC, 0 ppm -> Rs ~ 24.74 sm3/sm3.
     # Rs is unit-invariant (sm3/sm3), so the SI call must reproduce it.
+    # Post-migration (stock pyResToolbox 3.7.3 via si_adapter, SI-adapter-migration
+    # Task 2): Rs is now on the ISO SC basis (15 degC / 101,325 Pa), the adapter's
+    # deliberate SC unification -- Gate 1 anchor is 24.7913, +0.192% vs the fork's
+    # field-basis 24.74. Still within this test's 2% tolerance; assertion unchanged.
     result = compute_co2_brine_properties(
         pressure_Pa=175e5, temperature_K=85 + 273.15, salinity_wt_pct=0.0,
     )
@@ -182,8 +186,12 @@ def test_co2_brine_si_matches_documented_example():
 
 
 def test_co2_brine_si_units_are_physical():
-    # Verified reference point (rev bad0208): xCO2=0.01555, den=1060.1 kg/m3,
-    # visc=4.99e-4 Pa.s, Rs=19.93 sm3/sm3, Cf_usat=3.49e-10 1/Pa.
+    # Reference point, stock pyResToolbox 3.7.3 via si_adapter (SI-adapter-migration
+    # Task 2, Gate 1 actuals at 30e6 Pa/350 K/10 wt%): xCO2=0.015547, den=1060.31
+    # kg/m3, visc=4.822e-4 Pa.s (Calabrese swap, was 4.99e-4 pre-migration),
+    # Rs=20.650 sm3/sm3 (mole-basis fix + ISO SC correction, was 19.93
+    # pre-migration), Cf_usat=3.4892e-10 1/Pa. Assertions below are wide range
+    # checks, not tied to these exact values; kept unchanged.
     result = compute_co2_brine_properties(
         pressure_Pa=30e6, temperature_K=350.0, salinity_wt_pct=10.0,
     )

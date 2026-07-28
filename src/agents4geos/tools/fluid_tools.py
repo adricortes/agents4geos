@@ -27,18 +27,18 @@ def compute_gas_properties(
         h2s: Molar fraction of H2S (0-1).
         n2: Molar fraction of N2 (0-1).
     """
-    from pyrestoolbox import gas
+    from agents4geos.fluids import si_adapter as gas
 
     z = gas.gas_z(p=pressure_Pa, sg=specific_gravity, degf=temperature_K,
-                  co2=co2, h2s=h2s, n2=n2, units="SI")
+                  co2=co2, h2s=h2s, n2=n2)
     rho = gas.gas_den(p=pressure_Pa, sg=specific_gravity, degf=temperature_K,
-                      co2=co2, h2s=h2s, n2=n2, units="SI")
+                      co2=co2, h2s=h2s, n2=n2)
     mu = gas.gas_ug(p=pressure_Pa, sg=specific_gravity, degf=temperature_K,
-                    co2=co2, h2s=h2s, n2=n2, units="SI")
+                    co2=co2, h2s=h2s, n2=n2)
     bg = gas.gas_bg(p=pressure_Pa, sg=specific_gravity, degf=temperature_K,
-                    co2=co2, h2s=h2s, n2=n2, units="SI")
+                    co2=co2, h2s=h2s, n2=n2)
     cg = gas.gas_cg(p=pressure_Pa, sg=specific_gravity, degf=temperature_K,
-                    co2=co2, h2s=h2s, n2=n2, units="SI")
+                    co2=co2, h2s=h2s, n2=n2)
     return {
         "z_factor": float(z),
         "density_kg_m3": float(rho),
@@ -82,23 +82,23 @@ def compute_oil_properties(
         gas_sg: Weighted average specific gravity of surface gas (relative to air).
         rsb_sm3_sm3: Oil solution gas volume at bubble point (sm3/sm3).
     """
-    from pyrestoolbox import oil
+    from agents4geos.fluids import si_adapter as oil
 
     sg_o = 141.5 / (131.5 + api)
     pb = oil.oil_pbub(api=api, degf=temperature_K, rsb=rsb_sm3_sm3,
-                      sg_g=gas_sg, units="SI")
+                      sg_g=gas_sg)
     rs = oil.oil_rs(p=pressure_Pa, pb=pb, api=api, degf=temperature_K,
-                    rsb=rsb_sm3_sm3, sg_sp=gas_sg, units="SI")
+                    rsb=rsb_sm3_sm3, sg_sp=gas_sg)
     bo = oil.oil_bo(p=pressure_Pa, pb=pb, degf=temperature_K,
                     rs=rs, rsb=rsb_sm3_sm3, sg_o=sg_o,
-                    sg_g=gas_sg, units="SI")
+                    sg_g=gas_sg)
     rho = oil.oil_deno(p=pressure_Pa, degf=temperature_K, rs=rs,
                        rsb=rsb_sm3_sm3, sg_g=gas_sg, pb=pb,
-                       api=api, units="SI")
+                       api=api)
     mu = oil.oil_viso(p=pressure_Pa, api=api, degf=temperature_K,
-                      pb=pb, rs=rs, units="SI")
+                      pb=pb, rs=rs)
     co = oil.oil_co(p=pressure_Pa, api=api, degf=temperature_K,
-                    sg_g=gas_sg, pb=pb, rsb=rsb_sm3_sm3, units="SI")
+                    sg_g=gas_sg, pb=pb, rsb=rsb_sm3_sm3)
     return {
         "pb_Pa": float(pb),
         "rs_sm3_sm3": float(rs),
@@ -140,11 +140,10 @@ def compute_brine_properties(
         ch4_saturation: Degree of methane saturation (0-1). 0 = no dissolved CH4,
                         1 = fully saturated at given P/T.
     """
-    from pyrestoolbox import brine
+    from agents4geos.fluids import si_adapter as brine
 
     result = brine.brine_props(p=pressure_Pa, degf=temperature_K,
-                               wt=salinity_wt_pct, ch4_sat=ch4_saturation,
-                               units="SI")
+                               wt=salinity_wt_pct, ch4_sat=ch4_saturation)
     # brine_props SI returns: (Bw, density_kg_m3, viscosity_Pa_s, [cw_usat, cw_sat], Rs_ch4)
     cw_list = result[3]
     cw_usat = float(cw_list[0]) if isinstance(cw_list, list) and len(cw_list) > 0 else 0.0
@@ -195,14 +194,13 @@ def compute_co2_brine_properties(
         include_saturated_compressibility: If True, also compute the saturated
             brine compressibility (Cf_sat); roughly doubles the calculation.
     """
-    from pyrestoolbox import brine
+    from agents4geos.fluids import si_adapter as brine
 
     ppm = salinity_wt_pct * 1.0e4  # wt% -> NaCl ppm (1 wt% = 10,000 ppm)
     mix = brine.CO2_Brine_Mixture(
         pres=pressure_Pa,
         temp=temperature_K,
         ppm=ppm,
-        units="SI",
         cw_sat=include_saturated_compressibility,
     )
 
@@ -357,13 +355,13 @@ def generate_rel_perm(
         exponents: Family parameters. Corey: nw/no/ng; LET: Lw,Ew,Tw,Lo,Eo,To
                    (plus Lg,Eg,Tg for gas tables); Jerauld: aw,bw,ao,bo
                    (plus ag,bg for gas tables). Missing keys use defaults.
-        n_rows: Approximate row count (endpoint saturations are appended, so
-                the result may contain a few more rows).
+        n_rows: Exact row count of the generated table (upstream pyResToolbox
+                >=3.7 sizes the grid to the requested row count precisely).
         table: "SWOF" (water-oil), "SGOF" (gas-oil), or "SGWFN" (gas-water).
 
     Capillary pressure is not part of these tables; use generate_cap_pressure.
     """
-    from pyrestoolbox import simtools
+    from agents4geos.fluids import si_adapter as simtools
 
     fam = _RELPERM_FAMILY.get(model)
     if fam is None:
@@ -410,7 +408,7 @@ def fit_rel_perm(
         s_min: Critical/connate saturation endpoint used to normalize S.
         s_max: Maximum saturation endpoint used to normalize S.
     """
-    from pyrestoolbox import simtools
+    from agents4geos.fluids import si_adapter as simtools
 
     fam = _RELPERM_FAMILY.get(model)
     if fam is None:
@@ -470,7 +468,7 @@ def compute_well_ipr(
     atmosphere and evaluates the Darcy pseudo-steady-state radial rate at
     each point. Oil IPR is deliberately not implemented in this slice.
     """
-    from pyrestoolbox import gas
+    from agents4geos.fluids import si_adapter as gas
 
     if fluid_type != "gas":
         return {"error": "Oil IPR not implemented in this slice; only fluid_type='gas' "
@@ -482,7 +480,7 @@ def compute_well_ipr(
                  k=permeability_m2, h=thickness_m, pr=reservoir_pressure_Pa,
                  pwf=float(pwf), r_w=wellbore_radius_m, r_ext=drainage_radius_m,
                  degf=temperature_K, S=skin, sg=gas_specific_gravity,
-                 co2=co2, h2s=h2s, n2=n2, units="SI"))
+                 co2=co2, h2s=h2s, n2=n2))
              for pwf in pwf_values]
     return {
         "pwf_Pa": [float(p) for p in pwf_values],
