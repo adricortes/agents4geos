@@ -414,6 +414,10 @@ def fit_rel_perm(
     if fam is None:
         return {"error": f"Unsupported model '{model}'. Supported: BrooksCorey, LET, Jerauld."}
 
+    if len(measured_S) != len(measured_Kr):
+        return {"error": f"measured_S and measured_Kr must have the same length "
+                         f"(got {len(measured_S)} and {len(measured_Kr)})"}
+
     res = simtools.fit_rel_perm(sw=measured_S, kr=measured_Kr, krfamily=fam,
                                 krmax=krmax, sw_min=s_min, sw_max=s_max)
     return {

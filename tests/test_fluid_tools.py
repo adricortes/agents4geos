@@ -300,6 +300,12 @@ def test_fit_rel_perm_rejects_unknown_model():
     assert "error" in result
 
 
+def test_fit_rel_perm_length_mismatch_returns_error():
+    result = fit_rel_perm(measured_S=[0.1, 0.5, 0.9], measured_Kr=[0.0, 0.4])
+    assert "error" in result
+    assert "length" in result["error"].lower()
+
+
 def test_compute_well_ipr_gas_sweep():
     result = compute_well_ipr(
         reservoir_pressure_Pa=2e7, temperature_K=350.0, permeability_m2=1e-13,
@@ -366,6 +372,20 @@ def test_build_table_relperm_xml_two_phase_water_gas():
     result = build_table_relperm_xml(
         model="BrooksCorey", phase_names=["water", "gas"],
         swc=0.2, sor=0.0, exponents={"nw": 2.0, "ng": 2.0}, n_rows=10,
+    )
+    el = ElementTree.fromstring(result["relperm_xml"])
+    assert "wettingNonWettingRelPermTableNames" in el.attrib
+    assert len(result["table_function_xmls"]) == 2
+    for xml in result["table_function_xmls"]:
+        coords = [float(t) for t in
+                  ElementTree.fromstring(xml).attrib["coordinates"].strip("{} ").split(",")]
+        assert all(b > a for a, b in zip(coords, coords[1:]))  # strictly increasing
+
+
+def test_build_table_relperm_xml_two_phase_water_oil():
+    result = build_table_relperm_xml(
+        model="BrooksCorey", phase_names=["water", "oil"],
+        swc=0.2, sor=0.15, exponents={"nw": 2.0, "no": 2.0}, n_rows=10,
     )
     el = ElementTree.fromstring(result["relperm_xml"])
     assert "wettingNonWettingRelPermTableNames" in el.attrib
