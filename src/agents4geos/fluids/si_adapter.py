@@ -36,25 +36,25 @@ import importlib.metadata
 
 import numpy as np
 
-_MIN_VERSION = (3, 6)
+_MIN_VERSION = (3, 7, 3)
 
 
 def _check_version() -> None:
     raw = importlib.metadata.version("pyrestoolbox")
     parts = raw.split(".")
     try:
-        major, minor = int(parts[0]), int(parts[1])
+        version = tuple(int(p) for p in parts[:3])
     except (IndexError, ValueError) as exc:
         raise RuntimeError(
             f"agents4geos.fluids.si_adapter: could not parse pyrestoolbox "
             f"version string {raw!r}"
         ) from exc
-    if (major, minor) < _MIN_VERSION:
+    if version < _MIN_VERSION:
         raise RuntimeError(
             f"agents4geos.fluids.si_adapter requires stock pyrestoolbox >= "
-            f"{'.'.join(map(str, _MIN_VERSION))} (field-native + metric=True "
-            f"brine support); found {raw}. Run `uv sync --all-extras` to "
-            f"pick up the pinned version."
+            f"{'.'.join(map(str, _MIN_VERSION))} (exact-count table sizing, "
+            f"field-native + metric=True brine support); found {raw}. Run "
+            f"`uv sync --all-extras` to pick up the pinned version."
         )
 
 

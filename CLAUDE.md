@@ -25,7 +25,7 @@ repo** at `src/agents4geos/geos/{schema,xml,domain}/` — imported as
 `agents4geos.geos.*`. This engine was adopted from the now-superseded geos-tui
 project (provenance in `src/agents4geos/geos/ORIGIN.md`); there is no external
 geos-tui dependency. The repo is self-contained: `uv sync --all-extras` needs no
-sibling repos. pyvista and pyresToolbox both come from PyPI. pyresToolbox is
+sibling repos. pyvista and pyResToolbox both come from PyPI. pyResToolbox is
 **stock upstream** (`pyrestoolbox>=3.7.3`, `fluids` extra) consumed exclusively
 through the SI boundary adapter `src/agents4geos/fluids/si_adapter.py` — all
 tool-facing units are SI, standard conditions unified on ISO (15 °C, 101325 Pa).

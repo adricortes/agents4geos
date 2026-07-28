@@ -472,7 +472,7 @@ def compute_well_ipr(
 
     if fluid_type != "gas":
         return {"error": "Oil IPR not implemented in this slice; only fluid_type='gas' "
-                         "is supported (use pyrestoolbox.oil.oil_rate_radial directly)."}
+                         "is supported."}
 
     floor_Pa = 101325.0  # sweep down to one atmosphere
     pwf_values = np.linspace(reservoir_pressure_Pa, floor_Pa, n_points)
@@ -611,7 +611,8 @@ def build_table_relperm_xml(
         swc: Connate water saturation.
         sor: Residual saturation of the non-wetting/other phase.
         exponents: Family parameters as in generate_rel_perm.
-        n_rows: Approximate rows per table.
+        n_rows: Rows per table (upstream pyResToolbox >=3.7 sizes the grid to
+            the requested count exactly).
     """
     phases = list(phase_names)
 
