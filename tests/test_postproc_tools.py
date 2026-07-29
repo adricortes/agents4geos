@@ -41,6 +41,36 @@ def test_extract_field(tmp_output):
     assert result["mean"] > 0
 
 
+def _create_test_multiblock(tmp_path: Path) -> Path:
+    import pyvista as pv
+    import numpy as np
+    g = pv.ImageData(dimensions=(3, 3, 3)).cast_to_unstructured_grid()
+    g.cell_data["pressure"] = np.linspace(1.0e7, 1.5e7, g.n_cells)
+    mb = pv.MultiBlock()
+    mb.append(g, "rank0")
+    mb.append(g.copy(), "rank1")
+    path = tmp_path / "vtkOutput.vtm"
+    mb.save(str(path))
+    return path
+
+
+def test_read_vtk_output_handles_multiblock(tmp_path):
+    from agents4geos.tools.postproc_tools import read_vtk_output
+    path = _create_test_multiblock(tmp_path)
+    r = read_vtk_output(file_path=str(path))
+    assert "error" not in r
+    assert "pressure" in r["array_names"]
+    assert r["n_cells"] == 16  # 8 cells x 2 blocks
+
+
+def test_extract_field_handles_multiblock(tmp_path):
+    from agents4geos.tools.postproc_tools import extract_field
+    path = _create_test_multiblock(tmp_path)
+    r = extract_field(file_path=str(path), field_name="pressure")
+    assert r["count"] == 16
+    assert 1.0e7 <= r["min"] <= r["max"] <= 1.5e7
+
+
 def test_sanity_check_template(schema):
     doc = create_document(template="single_phase_flow")
     result = sanity_check(doc_id=doc["doc_id"])

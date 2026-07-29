@@ -11,12 +11,24 @@ from agents4geos.knowledge.sanity_rules import run_sanity_checks, check_document
 from agents4geos.tools.colormaps import SEQUENTIAL_DEFAULT, resolve_colormap
 
 
-@mcp.tool
-def read_vtk_output(file_path: str) -> dict:
-    """Inspect a GEOS VTK output file: cell/point counts, available arrays, scalar ranges."""
+def _load_mesh(file_path: str):
+    """pv.read that tolerates GEOS MultiBlock containers (.pvd/.vtm).
+
+    GEOS's vtkOutput.pvd and .vtm indexes load as pyvista MultiBlock, which has
+    no array_names; combine into a single grid so every tool sees a flat mesh.
+    """
     import pyvista as pv
 
     mesh = pv.read(file_path)
+    if isinstance(mesh, pv.MultiBlock):
+        mesh = mesh.combine(merge_points=True)
+    return mesh
+
+
+@mcp.tool
+def read_vtk_output(file_path: str) -> dict:
+    """Inspect a GEOS VTK output file: cell/point counts, available arrays, scalar ranges."""
+    mesh = _load_mesh(file_path)
     scalar_ranges = {}
     for name in mesh.array_names:
         arr = mesh[name]
@@ -34,9 +46,7 @@ def read_vtk_output(file_path: str) -> dict:
 @mcp.tool
 def extract_field(file_path: str, field_name: str) -> dict:
     """Extract summary statistics for a scalar field from a VTK file."""
-    import pyvista as pv
-
-    mesh = pv.read(file_path)
+    mesh = _load_mesh(file_path)
     arr = mesh[field_name]
     if arr.ndim > 1:
         arr = np.linalg.norm(arr, axis=1)
@@ -85,7 +95,7 @@ def screenshot_field(
     pv.global_theme.font.title_size = 20
     pv.global_theme.font.family = "arial"
 
-    mesh = pv.read(file_path)
+    mesh = _load_mesh(file_path)
     plotter = pv.Plotter(off_screen=True, window_size=(1920, 1080))
 
     sbar_args = {
@@ -120,11 +130,9 @@ def screenshot_field(
 @mcp.tool
 def compare_timesteps(file_paths: list[str], field_name: str) -> dict:
     """Compare a scalar field across multiple timestep VTK files."""
-    import pyvista as pv
-
     evolution = []
     for i, fp in enumerate(file_paths):
-        mesh = pv.read(fp)
+        mesh = _load_mesh(fp)
         arr = mesh[field_name]
         evolution.append({
             "timestep": i, "file": fp,
@@ -150,9 +158,7 @@ def compute_darcy_velocity(
         viscosity_Pa_s: Dynamic viscosity (Pa.s)
         output_path: Where to save the result (default: appends _velocity to filename)
     """
-    import pyvista as pv
-
-    mesh = pv.read(file_path)
+    mesh = _load_mesh(file_path)
     if "pressure" not in mesh.array_names:
         return {"error": "No 'pressure' field found in mesh"}
 
