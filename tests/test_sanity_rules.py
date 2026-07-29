@@ -88,3 +88,37 @@ def test_scalar_in_range_passes():
     res = run_sanity_checks([("temperature", "300")])  # within 273..573 K
     temp = _checks("temperature_range", res)
     assert temp and all(c["status"] == "pass" for c in temp)
+
+
+# --- Conditional requirements (agents4geos-evo) ----------------------------------
+
+def test_massrate_without_surface_conditions_fails_structure_check():
+    from agents4geos.knowledge.sanity_rules import check_document_structure
+    from agents4geos.tools.xml_tools import load_xml, _store
+
+    doc_id = load_xml(str(FIX / "massrate_missing_surface.xml"))["doc_id"]
+    doc = _store.get(doc_id)
+    results = check_document_structure(doc.root)
+    cond = [c for c in results if c["name"] == "conditional_requirement"]
+    assert cond, "massRate without useSurfaceConditions must produce a conditional_requirement result"
+    assert any(c["status"] == "fail" and "useSurfaceConditions" in c["attribute"] for c in cond)
+
+
+def test_massrate_with_surface_conditions_passes():
+    from agents4geos.knowledge.sanity_rules import check_document_structure
+    from agents4geos.tools.xml_tools import load_xml, _store
+    import tempfile, pathlib
+
+    xml = (FIX / "massrate_missing_surface.xml").read_text().replace(
+        'control="massRate"',
+        'control="massRate" useSurfaceConditions="1" surfacePressure="101325" '
+        'surfaceTemperature="288.71"',
+    )
+    with tempfile.TemporaryDirectory() as td:
+        p = pathlib.Path(td) / "ok.xml"
+        p.write_text(xml)
+        doc_id = load_xml(str(p))["doc_id"]
+    doc = _store.get(doc_id)
+    cond = [c for c in check_document_structure(doc.root)
+            if c["name"] == "conditional_requirement"]
+    assert cond and all(c["status"] == "pass" for c in cond)

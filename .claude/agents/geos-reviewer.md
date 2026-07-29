@@ -59,6 +59,12 @@ auto-fix (the `category` field already says WHAT kind of wrong it is):
   NOT auto-fixed): a heuristic concern that MAY be intentional — a physics/sanity
   flag (a negative or out-of-range value could be a deliberate experiment), or a
   minor/ambiguous intent gap.
+- NEVER advise removing an attribute merely because it matches a schema default:
+  some attributes are conditionally REQUIRED at runtime (e.g. WellControls
+  control="massRate" requires useSurfaceConditions="1" + surfacePressure —
+  stripping them fails in GEOS, not in schema validation). The sanity_check
+  tool's conditional_requirement results are authoritative; treat any
+  redundancy advisory that contradicts them as wrong.
 A dangling cross-reference (one `validate_cross_references` reports as not found)
 is fatal at init — grade it `error`, not `warning`. If the deck is correct and
 faithful, return `[]`.

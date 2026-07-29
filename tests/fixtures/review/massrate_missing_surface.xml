@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<Problem>
+  <Solvers>
+    <CompositionalMultiphaseWell name="wellSolver" targetRegions="{ wellRegion }">
+      <WellControls name="wellControls" type="injector" control="massRate"
+                    targetMassRate="5.0" targetBHP="2.2e7"
+                    referenceElevation="-1543.0" injectionTemperature="333.15"
+                    injectionStream="{ 1, 0 }"/>
+    </CompositionalMultiphaseWell>
+  </Solvers>
+</Problem>

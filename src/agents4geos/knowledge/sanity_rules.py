@@ -74,6 +74,26 @@ STRUCTURAL_RULES: list[dict] = [
 ]
 
 
+# Conditionally-required attributes: when `when_attr` equals `when_value` on the
+# element, every attr in `requires` must be present (and equal the given value if
+# not None). These are exactly the attributes a "redundant defaults" advisory
+# must NEVER suggest removing — stripping them fails at GEOS runtime, not at
+# schema validation (found the hard way: agents4geos-evo).
+CONDITIONAL_REQUIREMENTS: list[dict] = [
+    {
+        "element": "WellControls",
+        "when_attr": "control",
+        "when_value": "massRate",
+        "requires": {"useSurfaceConditions": "1", "surfacePressure": None},
+        "message": "control='massRate' requires useSurfaceConditions='1' (plus "
+                   "surfacePressure; surfaceTemperature recommended): the well "
+                   "solver's primary variable is volumetric and needs a surface "
+                   "density to convert the mass target. GEOS fails at runtime "
+                   "without it.",
+    },
+]
+
+
 def _parse_numeric_values(raw: str) -> list[float]:
     """Parse a GEOS attribute value into the numbers it contains.
 
@@ -177,5 +197,28 @@ def check_document_structure(root_element) -> list[dict]:
             "status": "pass" if passed else "fail",
             "message": "OK" if passed else f"Component fractions sum to {total:.4f}, should be ~1.0",
         })
+
+    # Conditionally-required attributes (deep walk — these elements nest
+    # below the top-level sections, e.g. Solvers > *Well > WellControls)
+    def _walk(el):
+        yield el
+        for child in el.children:
+            yield from _walk(child)
+
+    for rule in CONDITIONAL_REQUIREMENTS:
+        for el in _walk(root_element):
+            if el.schema_element.name != rule["element"]:
+                continue
+            if el.attributes.get(rule["when_attr"]) != rule["when_value"]:
+                continue
+            for req_name, req_value in rule["requires"].items():
+                actual = el.attributes.get(req_name)
+                ok = actual is not None and (req_value is None or actual == req_value)
+                results.append({
+                    "name": "conditional_requirement",
+                    "attribute": f"{rule['element']}/{req_name}",
+                    "status": "pass" if ok else "fail",
+                    "message": "OK" if ok else rule["message"],
+                })
 
     return results
