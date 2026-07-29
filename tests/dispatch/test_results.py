@@ -65,6 +65,18 @@ def test_fluid_defaults_when_optional_absent():
     assert fr.pvt_table_paths == [] and fr.notes == ""
 
 
+def test_parse_fluid_result_rejects_non_string_attribute_values():
+    d = {
+        "model_type": "CO2BrineEzrokhiFluid",
+        "constitutive": [{
+            "element_type": "CO2BrineEzrokhiFluid", "name": "fluid",
+            "attributes": {"phaseNames": ["gas", "water"]},   # JSON array — invalid
+        }],
+    }
+    with pytest.raises(ValueError, match="GEOS literal"):
+        parse_fluid_result(d)
+
+
 def test_parse_mesh_internal_roundtrip():
     mr = parse_mesh_result(_internal_mesh_dict())
     assert isinstance(mr, MeshResult)

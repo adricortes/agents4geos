@@ -49,5 +49,9 @@ Return one JSON object (and nothing else):
   "pvt_table_paths": [ ... ],
   "notes": "<variant rationale + any recommended coupled solid>"
 }
+Attribute VALUES must be GEOS literal strings exactly as they would appear in
+the XML — lists as "{ gas, water }", numbers as "333.15" or "{ 44e-3, 18e-3 }".
+JSON arrays/numbers are INVALID and will be rejected by the orchestrator's
+parser.
 Use `pvt_table_paths: []` if there are none. Do NOT write prose outside the JSON.
 Do NOT edit the deck.

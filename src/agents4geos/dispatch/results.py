@@ -60,6 +60,13 @@ def parse_fluid_result(d: dict) -> FluidResult:
         cmissing = {"element_type", "name", "attributes"} - item.keys()
         if cmissing:
             raise ValueError(f"constitutive[{i}] missing keys: {sorted(cmissing)}")
+        bad = {k: type(v).__name__ for k, v in item["attributes"].items()
+               if not isinstance(v, str)}
+        if bad:
+            raise ValueError(
+                f"constitutive[{i}] attribute values must be GEOS literal strings "
+                f"(e.g. '{{ gas, water }}'), got non-strings: {bad}"
+            )
         specs.append(
             ConstitutiveSpec(item["element_type"], item["name"], item["attributes"])
         )
