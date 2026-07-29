@@ -92,3 +92,35 @@ def test_screenshot_rejects_banned_colormap_before_render(tmp_path):
             field_name="pressure",
             colormap="jet",
         )
+
+
+def test_extract_field_component_access(tmp_path):
+    import pyvista as pv
+    import numpy as np
+    from agents4geos.tools.postproc_tools import extract_field
+    g = pv.ImageData(dimensions=(3, 3, 3)).cast_to_unstructured_grid()
+    vec = np.zeros((g.n_cells, 2))
+    vec[:, 0] = 0.25   # e.g. CO2 fraction
+    vec[:, 1] = 0.75
+    g.cell_data["phaseCompFraction"] = vec
+    path = tmp_path / "comp.vtu"
+    g.save(str(path))
+    r0 = extract_field(file_path=str(path), field_name="phaseCompFraction", component=0)
+    r1 = extract_field(file_path=str(path), field_name="phaseCompFraction", component=1)
+    assert abs(r0["mean"] - 0.25) < 1e-12
+    assert abs(r1["mean"] - 0.75) < 1e-12
+    rn = extract_field(file_path=str(path), field_name="phaseCompFraction")
+    assert abs(rn["mean"] - (0.25**2 + 0.75**2) ** 0.5) < 1e-12  # L2 default preserved
+    bad = extract_field(file_path=str(path), field_name="phaseCompFraction", component=5)
+    assert "error" in bad
+
+
+def test_screenshot_field_interior_slice(tmp_path):
+    from agents4geos.tools.postproc_tools import screenshot_field
+    path = _create_test_multiblock(tmp_path)
+    out = tmp_path / "slice.png"
+    result = screenshot_field(
+        file_path=str(path), field_name="pressure",
+        slice_normal="x", output_path=str(out),
+    )
+    assert Path(result).exists() and Path(result).stat().st_size > 0

@@ -44,12 +44,27 @@ def read_vtk_output(file_path: str) -> dict:
 
 
 @mcp.tool
-def extract_field(file_path: str, field_name: str) -> dict:
-    """Extract summary statistics for a scalar field from a VTK file."""
+def extract_field(file_path: str, field_name: str, component: int | None = None) -> dict:
+    """Extract summary statistics for a field from a VTK file.
+
+    Multi-component arrays (e.g. `fluid_phaseCompFraction`) default to the L2
+    magnitude across components. Pass `component` (0-indexed) to select a
+    single column instead — e.g. component=0 for CO2 fraction vs component=1
+    for water fraction — so free vs. dissolved phases can be decomposed
+    rather than blended into one magnitude.
+    """
     mesh = _load_mesh(file_path)
     arr = mesh[field_name]
     if arr.ndim > 1:
-        arr = np.linalg.norm(arr, axis=1)
+        if component is not None:
+            if not 0 <= component < arr.shape[1]:
+                return {"error": f"component {component} out of range for "
+                                 f"'{field_name}' with {arr.shape[1]} components"}
+            arr = arr[:, component]
+        else:
+            arr = np.linalg.norm(arr, axis=1)
+    elif component not in (None, 0):
+        return {"error": f"'{field_name}' is scalar; component={component} invalid"}
     return {
         "min": float(arr.min()),
         "max": float(arr.max()),
@@ -68,11 +83,18 @@ def screenshot_field(
     clim: list[float] | None = None,
     output_path: str = "field_screenshot.png",
     title: str | None = None,
-) -> str:
+    slice_normal: str | None = None,
+    slice_origin: list[float] | None = None,
+) -> str | dict:
     """Generate a publication-quality screenshot of a scalar field on a mesh.
 
     Includes: titled colorbar (vertical, right side), axis widget, figure title,
     proper font sizes, white background. Suitable for papers and presentations.
+
+    A surface render can hide a plume or front that lives in the mesh interior
+    (e.g. CO2 arriving at the surface only late, after it has migrated through
+    the reservoir). Pass `slice_normal` to cut an interior plane instead of
+    rendering the outer surface.
 
     Args:
         file_path: Path to VTK file
@@ -84,6 +106,12 @@ def screenshot_field(
         clim: Color limits [min, max], or None for auto
         output_path: Path to save PNG
         title: Optional figure title (defaults to field_name)
+        slice_normal: 'x', 'y', or 'z' to cut an interior plane through the mesh
+            instead of rendering the outer surface (None: no slice, current
+            behavior). The camera automatically faces the cut plane (unless
+            camera_position was explicitly set to something other than 'iso').
+        slice_origin: Point [x, y, z] the slice plane passes through. Defaults
+            to the mesh center.
     """
     import pyvista as pv
 
@@ -96,6 +124,15 @@ def screenshot_field(
     pv.global_theme.font.family = "arial"
 
     mesh = _load_mesh(file_path)
+
+    if slice_normal is not None:
+        if slice_normal not in ("x", "y", "z"):
+            return {"error": f"slice_normal must be x, y or z (got '{slice_normal}')"}
+        mesh = mesh.slice(normal=slice_normal,
+                          origin=slice_origin or list(mesh.center))
+        if camera_position == "iso":
+            camera_position = {"x": "yz", "y": "xz", "z": "xy"}[slice_normal]
+
     plotter = pv.Plotter(off_screen=True, window_size=(1920, 1080))
 
     sbar_args = {

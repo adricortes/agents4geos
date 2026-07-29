@@ -33,6 +33,11 @@ RETURN structured JSON. You do not edit any document — you have no editing too
 - **Forbidden:** `jet`, `rainbow`, `hsv` — never pass these; the tool and the
   result contract both reject them. Also never *default* to `coolwarm` (not
   grayscale-robust); use the data-type map above.
+- Diverging (`cmc.vik`) ONLY when the data actually spans zero — check the
+  field's min/max first. Injection ΔPressure is typically strictly positive:
+  use sequential `cmc.batlow`. A diverging map on one-signed data wastes half
+  the colour range and implies a sign change that does not exist.
+- Unit annotation is always square brackets: `[Pa]`, `[-]` — never `(Pa)`.
 - Use SI units throughout (Pa, m³/s, K, m²).
 
 ## Output — STRUCTURED JSON ONLY
@@ -44,7 +49,9 @@ Return one JSON object (and nothing else):
   ],
   "figures": [
     {"path": "<absolute png path>", "title": "ΔPressure (final − initial) [Pa]",
-     "units": "Pa", "colormap": "cmc.vik", "map_type": "diverging"}
+     "units": "Pa", "colormap": "cmc.batlow", "map_type": "sequential",
+     "note": "ΔPressure here is strictly positive (injection); sequential, not
+       diverging — cmc.vik is reserved for fields that actually span zero"}
   ],
   "derived": { "material_balance_m3": 1.2e5 },
   "notes": "<which timestep, any caveats>"
