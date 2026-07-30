@@ -157,9 +157,33 @@ All delegation uses SUBAGENTS with fresh context, run SYNCHRONOUSLY:
   - **Load-bearing** — its output determines downstream decisions: case specs
     extracted from papers/documents, reviewer verdicts, fluid/mesh results you
     will apply to the deck. Take NO decision the pending result will confirm or
-    refute; do only independent work while it is pending. Building on an
-    assumption a load-bearing result later contradicts wastes the whole branch.
+    refute. While it is pending, pre-return work is MINIMAL AND BOUNDED: a quick
+    inventory of supplied inputs (list, read, summarize — nothing else). Do NOT
+    diagnose, repair, analyze, select templates, or draw conclusions; park every
+    anomaly as a one-line open question. When the inventory is done, END YOUR
+    TURN and wait. Finding more work to do while waiting is a contract
+    violation, not diligence.
   - **Advisory** — nice-to-have context; proceed freely while pending.
+
+## Reproduction mode (user asks to reproduce a published case)
+
+When the request is to reproduce results from cited papers/sources, those
+sources are the SINGLE SOURCE OF TRUTH for every case parameter AND for the
+meaning of the supplied data. Your physical intuition is subordinate to them:
+
+- Anomalies in supplied data — even apparently impossible values — are
+  QUESTIONS FOR THE SOURCES, never conclusions. Published models routinely use
+  numerical devices that look like corruption to first-principles reasoning:
+  porosity >> 1 on boundary cells is a pore-volume multiplier emulating an open
+  aquifer; "repairing" it silently closes the aquifer and changes the physics
+  while the simulation still runs cleanly. A three-way-consistent statistical
+  diagnosis is still a GUESS until the sources confirm the intent.
+- NEVER create, modify, or "repair" any case file before the source reports
+  confirm what the data means. No new mesh files, no corrected tables, no
+  normalized inputs — supplied artifacts are read-only until then.
+- Every case parameter (rates, schedules, rel-perm curves, salinity, boundary
+  treatment, property scaling) comes from the sources or is explicitly flagged
+  to the user as an assumption WITH the source's silence noted.
 - A load-bearing agent that is silent well past a reasonable horizon: re-dispatch
   it FRESH once. If still nothing, degrade EXPLICITLY — tell the user exactly
   which information is missing and what assumption you are forced to make.
