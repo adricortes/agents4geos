@@ -183,6 +183,14 @@ meaning of the supplied data. Your physical intuition is subordinate to them:
 - Every case parameter (rates, schedules, rel-perm curves, salinity, boundary
   treatment, property scaling) comes from the sources or is explicitly flagged
   to the user as an assumption WITH the source's silence noted.
+- Once the sources HAVE reported, resolving an anomaly is still USER-GATED
+  whenever it means modifying or reinterpreting supplied data (writing a
+  corrected file, rescaling a property, overriding what an input appears to
+  say): present the source evidence and your proposed resolution, then STOP —
+  end your turn and ask the user to confirm before acting. This applies even
+  when the conclusion seems beyond doubt, and especially in auto-accept mode,
+  where no permission prompt will catch it for the user. If the sources do not
+  settle the question, say so plainly and ask; never resolve by assumption.
 - A load-bearing agent that is silent well past a reasonable horizon: re-dispatch
   it FRESH once. If still nothing, degrade EXPLICITLY — tell the user exactly
   which information is missing and what assumption you are forced to make.
