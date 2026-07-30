@@ -143,6 +143,28 @@ remove_element(doc_id, element_path)
    the catalog router (Stage 0) is often the better answer than raw schema
    introspection — it speaks user-intent vocabulary, the schema speaks XSD.
 
+## Subagent dispatch contract (applies to EVERY Agent-tool call)
+
+All delegation uses SUBAGENTS with fresh context, run SYNCHRONOUSLY:
+
+- Always pass `run_in_background: false`. The tool result must be the agent's
+  FINAL REPORT. If you instead receive only a spawn acknowledgment ("Spawned
+  successfully" / an agentId), the agent is running in the background anyway:
+  STOP — do NO work that depends on its answer until its task-notification
+  arrives. Waiting means ending your turn if no independent work remains.
+- Never resume or message a previous agent for new scope — spawn a fresh one.
+- Classify every dispatch before making it:
+  - **Load-bearing** — its output determines downstream decisions: case specs
+    extracted from papers/documents, reviewer verdicts, fluid/mesh results you
+    will apply to the deck. Take NO decision the pending result will confirm or
+    refute; do only independent work while it is pending. Building on an
+    assumption a load-bearing result later contradicts wastes the whole branch.
+  - **Advisory** — nice-to-have context; proceed freely while pending.
+- A load-bearing agent that is silent well past a reasonable horizon: re-dispatch
+  it FRESH once. If still nothing, degrade EXPLICITLY — tell the user exactly
+  which information is missing and what assumption you are forced to make.
+  Never degrade silently.
+
 ## Stage C — Concurrent compute (mesh + fluids fan-out)
 
 During assembly, when the deck needs a non-trivial mesh and/or fluid model (real
@@ -156,10 +178,14 @@ delegate that compute to subagents running in PARALLEL instead of doing it inlin
    - `geos-fluids` with the chosen CATEGORY + conditions + the workspace path.
    - `geos-mesh` with the geometry/resolution + the workspace path.
 3. Each returns a JSON result. Validate the required keys (mesh: `mesh_kind` and
-   either `internal_mesh` or `vtk_path`; fluids: `model_type` + `constitutive`). If
-   a result is missing/invalid or a subagent errored, FALL BACK to computing that
-   axis inline yourself — you still have all MCP tools. Partial failure is fine:
-   apply the good one, inline the other. A subagent failure NEVER blocks the build.
+   either `internal_mesh` or `vtk_path`; fluids: `model_type` + `constitutive`).
+   Distinguish two situations sharply:
+   - **Result RECEIVED but invalid/errored** → FALL BACK to computing that axis
+     inline yourself — you still have all MCP tools. Partial failure is fine:
+     apply the good one, inline the other. An *errored* subagent never blocks.
+   - **No result yet (silent/pending)** → this is NOT a failure; it is a pending
+     load-bearing dispatch. WAIT per the dispatch contract. Do not fall back
+     inline merely because the answer has not arrived.
 4. Apply the results to the doc (you, the orchestrator, do ALL mutation — the
    subagents never touch the document):
    - Mesh `internal` → `update_element` the `InternalMesh` attributes; mesh `vtk`
@@ -179,6 +205,11 @@ After the deck is assembled and previewed, BEFORE `save_xml` and before presenti
 to the user, run an independent review. The reviewer runs in a FRESH context — it
 knows only the artifact and the user's words, not how you built the deck. That
 independence is the point; do not try to explain your choices to it.
+
+The reviewer's verdict is LOAD-BEARING (dispatch contract): the deck must not be
+saved or presented while a reviewer dispatch is pending. If a reviewer is lost,
+re-dispatch fresh once; if review is genuinely impossible, you may only proceed by
+telling the user explicitly that the deck is UNREVIEWED and why.
 
 1. Ensure a current preview exists (`preview_xml(doc_id)` → path) and you know the
    `doc_id`.
