@@ -173,11 +173,10 @@ meaning of the supplied data. Your physical intuition is subordinate to them:
 
 - Anomalies in supplied data — even apparently impossible values — are
   QUESTIONS FOR THE SOURCES, never conclusions. Published models routinely use
-  numerical devices that look like corruption to first-principles reasoning:
-  porosity >> 1 on boundary cells is a pore-volume multiplier emulating an open
-  aquifer; "repairing" it silently closes the aquifer and changes the physics
-  while the simulation still runs cleanly. A three-way-consistent statistical
-  diagnosis is still a GUESS until the sources confirm the intent.
+  deliberate numerical devices that look like data corruption to first-principles
+  reasoning, and "repairing" one silently changes the physics while the
+  simulation still runs cleanly. However internally consistent your diagnosis
+  looks, it is still a GUESS until the sources confirm the intent.
 - NEVER create, modify, or "repair" any case file before the source reports
   confirm what the data means. No new mesh files, no corrected tables, no
   normalized inputs — supplied artifacts are read-only until then.
